@@ -159,9 +159,54 @@ body.panel-open #hint{opacity:0}
 button,.tg,#hud,#bar{touch-action:manipulation}
 .pbody{overscroll-behavior:contain}
 body{-webkit-touch-callout:none}
+/* 복식장부 */
+.mode{display:flex;gap:4px;padding:4px;border-radius:14px;background:#f7efe4;margin:2px 0 12px}
+.mode button{flex:1;height:36px;border-radius:11px;font-size:13px;font-weight:800;color:var(--muted)}
+.mode button.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(110,70,40,.12)}
+.pnote{font-size:12px;color:#7a5fc0;background:#f3eefc;border-radius:12px;padding:8px 11px;margin:-6px 0 14px;line-height:1.5}
+.jt,.tb{background:#fff;border-radius:16px;box-shadow:0 2px 8px rgba(110,70,40,.06);overflow:hidden}
+.jh,.jr{display:grid;grid-template-columns:minmax(0,1fr) 150px 150px;gap:10px;align-items:center;padding:9px 12px}
+.jh{font-size:11px;font-weight:800;color:var(--muted);background:#fbf5ec}
+.jr{border-top:1px dashed var(--line);font-size:13px}
+.jr .dm{display:flex;align-items:baseline;gap:8px;min-width:0}
+.jr .dm .d{font-size:12px;color:var(--muted);white-space:nowrap}
+.jr .dm .m{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.jr .side{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;padding:4px 8px;border-radius:9px}
+.jr .side .a{font-size:11.5px;font-weight:800;white-space:nowrap}
+.jr .side b{font-weight:700;white-space:nowrap;font-size:13px}
+.jr .dr{background:#eaf7f1}.jr .dr .a{color:#2c8a6e}
+.jr .cr{background:#fff1e9}.jr .cr .a{color:#c85a43}
+.jr .side .lb{display:none;font-size:10px;font-weight:800;opacity:.7;margin-right:2px}
+.jr.personal{background:#faf6ff}.jr.personal .dr{background:#efe8fb}.jr.personal .dr .a{color:#7a5fc0}
+.jr.new{animation:rowin .9s ease}
+.more{display:block;width:100%;height:40px;font-size:13px;font-weight:700;color:var(--coral-d);border-top:1px dashed var(--line)}
+.tr{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px 104px;gap:6px;align-items:center;padding:8px 12px;font-size:13px;border-top:1px dashed var(--line)}
+.tr:first-child{border-top:0;font-size:11px;font-weight:800;color:var(--muted);background:#fbf5ec}
+.tr>span{text-align:right;white-space:nowrap}
+.tr>span:first-child{text-align:left;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.tr .z{color:#c9b8a8}
+.tr.sum{background:#fff7e2;font-weight:800;border-top:2px solid #f1e4d4}
+.tr small{font-size:10px;font-weight:800;color:var(--muted);margin-right:2px}
+.bal{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 2px;padding:9px;border-radius:12px;font-size:13px;font-weight:800;background:#e5f6ef;color:#2c8a6e}
+.bal.bad{background:#ffe9e1;color:var(--neg)}
+.fx-edit .row input{width:130px;height:38px;border-radius:10px;border:2px solid #f1e4d4;background:#fffaf3;padding:0 10px;font-size:15px;font-weight:700;text-align:right;outline:none}
+.fx-edit .row input:focus{border-color:var(--coral)}
+.ghost{display:block;width:100%;margin-top:10px;height:42px;border-radius:13px;background:#f7efe4;font-size:13.5px;font-weight:800;color:var(--ink)}
+@media (max-width:719px){
+  .jh{display:none}
+  .jr{grid-template-columns:1fr 1fr;gap:6px 8px;padding:10px 12px}
+  .jr .dm{grid-column:1/-1}
+  .jr .side .lb{display:inline}
+  .tr{grid-template-columns:minmax(0,1fr) 66px 66px 80px;gap:5px;padding:8px 10px;font-size:11.5px}
+  .tr:first-child{font-size:10.5px}
+  #panel.wide{max-height:80vh;max-height:80dvh}
+}
 @media (min-width:720px){
   body.panel-open #hud{right:392px}
   body.panel-open #bar{right:392px}
+  #panel.wide{width:580px}
+  body.panel-wide #hud,body.panel-wide #bar{right:612px}
+  .mark{white-space:nowrap}
   body.panel-open #face,body.panel-open #bubble{opacity:0;pointer-events:none}
 }
 @media (max-width:719px){
@@ -188,6 +233,7 @@ body{-webkit-touch-callout:none}
   .pbody{padding:2px 14px 16px}
   .big b{font-size:23px}
 }
+@media (min-width:720px) and (max-width:1420px){ body.panel-wide .mark{display:none} }
 @media (max-width:350px){ .stat b{font-size:12.5px} .stat{padding:0 6px} .quick button{padding:0 8px;font-size:12px} }
 @media (prefers-reduced-motion:reduce){ .tg .b,.blob{animation:none} }
 </style>
@@ -280,12 +326,25 @@ function makeSample() {
       .map(([n, time, amount, channel]) => ({ id: uid(), date: day(n), time, amount, channel })),
     ingredients: [[6, '채소', 38000], [5, '육류', 120000], [4, '빵·유제품', 64000], [2, '소스·양념', 32000], [1, '음료', 45000]]
       .map(([n, name, amount]) => ({ id: uid(), date: day(n), name, amount })),
-    fixed: [{ name: '임차료', amount: 1200000 }, { name: '공과금(전기·수도)', amount: 180000 }, { name: '통신비', amount: 55000 }, { name: '세금과공과', amount: 90000 }]
+    fixed: [{ name: '임차료', amount: 1200000 }, { name: '공과금(전기·수도)', amount: 180000 }, { name: '통신비', amount: 55000 }, { name: '세금과공과', amount: 90000 }],
+    personal: samplePersonal(day),
+    opening: 2000000
   };
+}
+function samplePersonal(day) {
+  return [[5, '편의점', 8400], [3, '주유', 62000], [2, '생활용품', 23500]].map(([n, name, amount]) => ({ id: uid(), date: day(n), name, amount }));
 }
 function saveData(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
 function loadData() {
-  try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); if (d && Array.isArray(d.sales) && Array.isArray(d.ingredients) && Array.isArray(d.fixed)) return d; } catch (e) {}
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && Array.isArray(d.sales) && Array.isArray(d.ingredients) && Array.isArray(d.fixed)) {
+      // 이전 버전 데이터: 개인 지출·월초 시재 샘플만 덧붙임(기존 기록은 그대로)
+      if (!Array.isArray(d.personal)) { const k = kst(); d.personal = samplePersonal(n => `${k.ym}-${String(Math.max(1, k.d - n)).padStart(2, '0')}`); }
+      if (typeof d.opening !== 'number') d.opening = 2000000;
+      saveData(d); return d;
+    }
+  } catch (e) {}
   const s = makeSample(); saveData(s); return s;
 }
 let DATA = loadData();
@@ -295,6 +354,33 @@ function month() {
   const sales = DATA.sales.filter(x => String(x.date).startsWith(k.ym)), ing = DATA.ingredients.filter(x => String(x.date).startsWith(k.ym));
   const s = sum(sales), i = sum(ing), f = sum(DATA.fixed);
   return { k, sales, ing, s, i, f, exp: i + f, net: s - i - f, today: sum(DATA.sales.filter(x => x.date === k.date)) };
+}
+/* ---- 복식장부: 자동 분개 + 시산표 ---- */
+function fixedAcc(name) {
+  const n = String(name);
+  if (/임차|월세|임대/.test(n)) return '임차료';
+  if (/공과금|전기|수도|가스|광열/.test(n)) return '수도광열비';
+  if (/통신|인터넷|전화/.test(n)) return '통신비';
+  if (/세금|공과/.test(n)) return '세금과공과';
+  if (/인건|급여|알바|직원/.test(n)) return '인건비';
+  return '기타경비';
+}
+function journal(all) {
+  const mo = month(), ym = mo.k.ym, E = [];
+  E.push({ id: 'open', date: ym + '-01', t: '00:00', memo: '월초 시재 (기초 현금)', dr: '현금', cr: '자본금', amt: Number(DATA.opening) || 0 });
+  DATA.fixed.forEach((f, i) => E.push({ id: 'fx' + i, date: ym + '-01', t: '00:0' + (i + 1), memo: f.name + ' · 월 고정비', dr: fixedAcc(f.name), cr: '현금', amt: Number(f.amount) || 0 }));
+  mo.sales.forEach(x => E.push({ id: x.id, date: x.date, t: x.time || '', memo: '매출 · ' + x.channel, dr: '현금', cr: '매출', amt: x.amount }));
+  mo.ing.forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: '식자재 · ' + x.name, dr: '식자재비', cr: '현금', amt: x.amount }));
+  if (all) (DATA.personal || []).filter(x => String(x.date).startsWith(ym)).forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: '개인 · ' + x.name, dr: '개인인출', cr: '현금', amt: x.amount, personal: true }));
+  return E.filter(e => e.amt > 0);
+}
+const ACC_ORDER = ['현금', '매출', '식자재비', '임차료', '수도광열비', '통신비', '세금과공과', '인건비', '기타경비', '개인인출', '자본금'];
+const CREDIT_ACC = new Set(['매출', '자본금']);
+function trialBalance(E, all) {
+  const m = new Map(ACC_ORDER.filter(a => all || a !== '개인인출').filter(a => a !== '기타경비').map(a => [a, { dr: 0, cr: 0 }]));
+  E.forEach(e => { if (!m.has(e.dr)) m.set(e.dr, { dr: 0, cr: 0 }); if (!m.has(e.cr)) m.set(e.cr, { dr: 0, cr: 0 }); m.get(e.dr).dr += e.amt; m.get(e.cr).cr += e.amt; });
+  const rows = [...m.entries()].map(([acc, v]) => ({ acc, dr: v.dr, cr: v.cr, bal: CREDIT_ACC.has(acc) ? v.cr - v.dr : v.dr - v.cr, side: CREDIT_ACC.has(acc) ? '대' : '차' }));
+  return { rows, drT: rows.reduce((s, r) => s + r.dr, 0), crT: rows.reduce((s, r) => s + r.cr, 0) };
 }
 const won = n => (n < 0 ? '-' : '') + '₩' + Math.abs(Math.round(n)).toLocaleString('ko-KR');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -716,6 +802,43 @@ function stepCat(now, T, dt) {
   }
 }
 
+/* ---- 세무회계 책장 (메시 15개: 틀 7 + 바인더 1(인스턴스) + 라벨 3 + 트로피 2 + 화분 2) ---- */
+const shelf = new THREE.Group(); shelf.position.set(-1.65, 0, -1.05); shelf.rotation.y = 0.75; scene.add(shelf);
+{
+  const SW = 0.8, SH = 1.18, SD = 0.32, wood = S(0xffffff, 0.55, { map: woodTop, envMapIntensity: 0.4 }), backM = P(0xffd9c4, 0.6, { clearcoat: 0.2 });
+  add(shelf, RB(0.045, SH, SD, 0.02), wood, -SW / 2 + 0.022, SH / 2, 0);
+  add(shelf, RB(0.045, SH, SD, 0.02), wood, SW / 2 - 0.022, SH / 2, 0);
+  add(shelf, RB(SW + 0.05, 0.05, SD + 0.03, 0.022), wood, 0, SH, 0);
+  add(shelf, RB(SW, 0.08, SD, 0.025), wood, 0, 0.04, 0);
+  add(shelf, RB(SW - 0.04, SH - 0.06, 0.02, 0.008), backM, 0, SH / 2, -SD / 2 + 0.012, false);
+  const SY = [0.08, 0.47, 0.86];
+  [0.47, 0.86].forEach(y => add(shelf, RB(SW - 0.07, 0.03, SD - 0.03, 0.01), wood, 0, y - 0.015, 0));
+  // 바인더·장부: 인스턴스 1개로 (색만 다르게)
+  const bcol = [0xef8a74, 0x9fd9c8, 0xffd56b, 0xb7a6e8, 0xf7a7b6, 0x9cc9f0, 0xffc9a3, 0x9fd9c8, 0xef8a74, 0xffd56b, 0xb7a6e8, 0x9cc9f0];
+  const binders = new THREE.InstancedMesh(RB(0.062, 0.3, 0.23, 0.014, 2), S(0xffffff, 0.55, { emissive: 0x000000 }), 12);
+  binders.castShadow = true; binders.receiveShadow = true;
+  const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(1, 1, 1), c = new THREE.Color();
+  const place = (i, x, y, z, rz, h = 1) => { q.setFromEuler(new THREE.Euler(0, 0, rz)); sc.set(1, h, 1); mtx.compose(V3(x, y, z), q, sc); binders.setMatrixAt(i, mtx); binders.setColorAt(i, c.setHex(bcol[i])); };
+  for (let i = 0; i < 6; i++) place(i, -0.28 + i * 0.068, SY[0] + 0.15, 0.01, 0);           // 아래 칸 6권
+  for (let i = 0; i < 4; i++) place(6 + i, -0.3 + i * 0.066, SY[1] + 0.135, 0.01, 0, 0.9);  // 가운데 칸 4권
+  place(10, 0.0, SY[1] + 0.125, 0.01, -0.32, 0.85);                                        // 기대 놓인 1권
+  place(11, 0.26, SY[1] + 0.03, 0.0, Math.PI / 2, 0.85);                                   // 눕힌 1권
+  shelf.add(binders);
+  // 앞쪽 3권 등 라벨: 세무 / 회계 / 급여
+  [['세무', '#c85a43'], ['회계', '#2c8a6e'], ['급여', '#a07a10']].forEach(([t, col], i) => {
+    const tex = canvasTex(64, 160, (g, w, h) => {
+      g.fillStyle = '#fffaf2'; g.beginPath(); g.roundRect ? g.roundRect(4, 4, w - 8, h - 8, 12) : g.rect(4, 4, w - 8, h - 8); g.fill();
+      g.fillStyle = col; g.font = `800 30px ${FONT}`; g.textAlign = 'center'; g.fillText(t[0], w / 2, 66); g.fillText(t[1], w / 2, 108);
+    });
+    add(shelf, new THREE.PlaneGeometry(0.046, 0.115), S(0xffffff, 0.8, { map: tex }), -0.28 + i * 0.068, SY[0] + 0.17, 0.1265, false);
+  });
+  // 맨 위 칸: 트로피 + 화분
+  add(shelf, RB(0.08, 0.035, 0.08, 0.01), S(0xfffaf0, 0.5), -0.18, SY[2] + 0.018, 0);
+  add(shelf, CYL(0.05, 0.022, 0.1, 16), S(0xf0c25e, 0.25, { metalness: 0.9, envMapIntensity: 1 }), -0.18, SY[2] + 0.09, 0);
+  add(shelf, CYL(0.055, 0.042, 0.09, 16), P(0x9fd9c8, 0.5), 0.17, SY[2] + 0.045, 0);
+  add(shelf, SPH(0.07, 12, 10), S(0x86c9a5, 0.6), 0.17, SY[2] + 0.15, 0).scale.set(1, 1.15, 1);
+}
+
 /* ---- 상호작용 등록 ---- */
 const OBJ = {};
 function register(key, root, o) {
@@ -725,11 +848,13 @@ function register(key, root, o) {
   OBJ[key] = Object.assign({ root, mats: [...mats], h: 0, baseY: root.position.y }, o);
 }
 register('pos', pos, { emoji: '🖥️', name: '포스기', chip: '탭해서 열기', anchor: V3(0.05, 1.36, -0.33),
-  focus: { t: V3(0.05, 1.1, -0.33), dir: V3(0, 0.7, 1), dist: 1.15, fit: 0.45, hh: 0.26 } });
+  focus: { t: V3(0.05, 1.17, -0.38), dir: V3(0, 0.6, 1), dist: 1.15, fit: 0.45, hh: 0.26 } });
 register('safe', safe, { emoji: '💰', name: '금고', chip: '탭해서 열기', anchor: V3(-0.45, 1.3, -0.33),
   focus: { t: V3(-0.45, 1.06, -0.3), dir: V3(0.1, 0.75, 1), dist: 1.1, fit: 0.42, hh: 0.24 } });
 register('fridge', fridge, { emoji: '🧊', name: '냉장고', chip: '탭해서 열기', anchor: V3(1.6, 1.95, -1.15),
   focus: { t: V3(1.58, 0.92, -1.12), dir: V3(-0.22, 0.2, 1), dist: 2.1, fit: 0.8, hh: 1.0 } });
+register('ledger', shelf, { emoji: '📚', name: '세무회계 장부', short: '장부', chip: '탭해서 복식장부 열기', anchor: V3(-1.65, 1.38, -1.05),
+  focus: { t: V3(-1.65, 0.68, -1.05), dir: V3(0.35, 0.55, 1), dist: 1.6, fit: 0.5, hh: 0.68 } });
 register('cat', cat, { emoji: '🐱', name: '점장 고양이', chip: '쓰다듬기', anchor: V3(-0.17, 1.27, -0.06), focus: null });
 register('owner', owner, { emoji: '🙋', name: '사장님', chip: '말 걸기', anchor: V3(0.85, 1.28, -0.55),
   focus: null });
@@ -851,6 +976,7 @@ function refreshPos() { const mo = month(); drawPos(mo.today, mo.s); }
    8. 패널
    ========================================================= */
 const panel = document.getElementById('panel'), pBody = document.getElementById('pBody'), pTag = document.getElementById('pTag'), pTitle = document.getElementById('pTitle');
+let ledgerAll = false, ledgerMore = false, fixedEdit = false;
 let activeKey = null, formOpen = false, saleChannel = '매장', lastNewId = null, sampleArm = 0;
 const CHANNELS = ['매장', '배달', '예약'], QUICK_ING = ['채소', '육류', '빵·유제품', '소스·양념', '음료'];
 function renderPanel() {
@@ -882,22 +1008,59 @@ function renderPanel() {
   } else if (activeKey === 'safe') {
     pTag.textContent = '💰 금고 · 고정비'; pTitle.textContent = `${mo.k.m}월 고정비`;
     h += `<div class="sec"><span>매달 나가는 돈</span><span>${DATA.fixed.length}개 항목</span></div><div class="rows">`;
-    h += DATA.fixed.map(x => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('');
-    h += `<div class="row total"><div class="l"><span>고정비 합계</span></div><b class="num">${won(mo.f)}</b></div></div>`;
+    if (!fixedEdit) {
+      h += DATA.fixed.map(x => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('');
+      h += `<div class="row total"><div class="l"><span>고정비 합계</span></div><b class="num">${won(mo.f)}</b></div></div><button class="ghost" data-act="edit-fixed">✏️ 고정비 금액 수정</button>`;
+    } else {
+      h = h.replace('<div class="rows">', '<div class="rows fx-edit">');
+      h += DATA.fixed.map((x, i) => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><input class="num amt" data-fx="${i}" inputmode="numeric" maxlength="13" value="${Number(x.amount).toLocaleString('ko-KR')}" aria-label="${esc(x.name)} 금액"></div>`).join('');
+      h += `</div><div class="factions" style="margin-top:10px"><button class="cancel" data-act="cancel-fixed">취소</button><button class="save" data-act="save-fixed">저장</button></div>`;
+    }
     h += `<div class="sec" style="margin-top:16px"><span>이번 달 순익 계산</span></div><div class="rows">
       <div class="row"><div class="l"><span>매출</span></div><b class="num">${won(mo.s)}</b></div>
       <div class="row"><div class="l"><span>− 식자재</span></div><b class="num">${won(mo.i)}</b></div>
       <div class="row"><div class="l"><span>− 고정비</span></div><b class="num">${won(mo.f)}</b></div>
       <div class="row total"><div class="l"><span>= 순익</span></div><b class="num ${mo.net >= 0 ? 'pos' : 'neg'}">${won(mo.net)}</b></div></div>
-      <p class="hintp">고정비 금액은 샘플이에요. 매출은 포스기, 식자재는 냉장고에서 넣으면 바로 반영돼요.</p>
+      <p class="hintp">고정비를 고치면 상단 숫자와 📒 복식장부에도 바로 반영돼요.</p>
       <button class="reset" data-act="reset">↺ 샘플 데이터로 되돌리기</button>`;
+  } else if (activeKey === 'ledger') {
+    pTag.textContent = '📚 세무회계 장부'; pTitle.textContent = `📒 ${mo.k.m}월 복식장부`;
+    const E = journal(ledgerAll), tb = trialBalance(E, ledgerAll);
+    const pers = (DATA.personal || []).filter(x => String(x.date).startsWith(mo.k.ym));
+    h += `<div class="mode" role="tablist"><button data-mode="biz" class="${ledgerAll ? '' : 'on'}" role="tab" aria-selected="${!ledgerAll}">🏪 사업 전용</button><button data-mode="all" class="${ledgerAll ? 'on' : ''}" role="tab" aria-selected="${ledgerAll}">👛 전체</button></div>`;
+    h += `<div class="cards"><div class="card"><span>매출</span><b class="num">${won(mo.s)}</b></div><div class="card"><span>비용</span><b class="num">${won(mo.exp)}</b></div><div class="card"><span>순익</span><b class="num" style="color:${mo.net >= 0 ? 'var(--pos)' : 'var(--neg)'}">${won(mo.net)}</b></div></div>`;
+    h += ledgerAll ? `<div class="pnote">👛 개인 지출 ${pers.length}건 · <b>${won(sum(pers))}</b>을 <b>개인인출</b>로 분개했어요. 사업 순익에는 들어가지 않아요.</div>`
+                   : `<div class="pnote" style="color:#2c8a6e;background:#eaf7f1">🏪 사업 거래만 보여요. 개인 지출 ${pers.length}건은 <b>전체</b>에서 볼 수 있어요.</div>`;
+    const sorted = E.slice().sort((a, b) => (b.date + b.t + b.id).localeCompare(a.date + a.t + a.id));
+    const shown = ledgerMore ? sorted : sorted.slice(0, 12);
+    h += `<div class="sec"><span>자동 분개</span><span>${E.length}건 · 최신순</span></div><div class="jt">`;
+    h += `<div class="jh"><span>날짜 · 적요</span><span>차변 계정 (금액)</span><span>대변 계정 (금액)</span></div>`;
+    h += shown.map(e => `<div class="jr${e.personal ? ' personal' : ''}${e.id === lastNewId ? ' new' : ''}"><div class="dm"><span class="d num">${md(e.date)}</span><span class="m">${esc(e.memo)}</span></div>
+      <div class="side dr"><span class="a"><span class="lb">차)</span>${esc(e.dr)}</span><b class="num">${e.amt.toLocaleString('ko-KR')}</b></div>
+      <div class="side cr"><span class="a"><span class="lb">대)</span>${esc(e.cr)}</span><b class="num">${e.amt.toLocaleString('ko-KR')}</b></div></div>`).join('');
+    if (sorted.length > shown.length) h += `<button class="more" data-act="more">전체 ${sorted.length}건 보기 ▾</button>`;
+    h += `</div>`;
+    if (!formOpen) h += `<button class="ghost" data-act="open-form">👛 + 개인 지출 입력</button>`;
+    else h += `<div class="form">
+      <div class="field"><label for="fName">개인 지출 내용</label><input id="fName" autocomplete="off" placeholder="예: 편의점" maxlength="20" style="font-size:16px">
+      <div class="qk">${['편의점', '주유', '생활용품', '병원'].map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
+      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 8,400" maxlength="13"></div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-personal">개인인출로 기록</button></div></div>`;
+    h += `<div class="sec" style="margin-top:18px"><span>시산표</span><span>${ledgerAll ? '전체' : '사업 전용'}</span></div><div class="tb">`;
+    h += `<div class="tr"><span>계정</span><span>차변 합</span><span>대변 합</span><span>잔액</span></div>`;
+    const f = v => v ? v.toLocaleString('ko-KR') : '<i class="z">—</i>';
+    h += tb.rows.map(r => `<div class="tr"><span>${esc(r.acc)}</span><span class="num">${f(r.dr)}</span><span class="num">${f(r.cr)}</span><span class="num">${r.bal ? `<small>${r.bal < 0 ? (r.side === '차' ? '대' : '차') : r.side}</small>${Math.abs(r.bal).toLocaleString('ko-KR')}` : '<i class="z">—</i>'}</span></div>`).join('');
+    h += `<div class="tr sum"><span>합계</span><span class="num">${tb.drT.toLocaleString('ko-KR')}</span><span class="num">${tb.crT.toLocaleString('ko-KR')}</span><span></span></div></div>`;
+    const ok = Math.round(tb.drT) === Math.round(tb.crT);
+    h += `<div class="bal${ok ? '' : ' bad'}">${ok ? '⚖️ 차변 합계 = 대변 합계 · 균형 OK ✅' : '⚠️ 차변·대변 합계가 달라요'}</div>`;
+    h += `<p class="hintp">포스기 매출은 <b>현금/매출</b>, 냉장고 식자재는 <b>식자재비/현금</b>, 금고 고정비는 각 비용 계정/현금으로 자동 분개돼요. 월초 시재(기초 현금)는 샘플 값이에요.</p>`;
   }
   pBody.innerHTML = h; lastNewId = null;
 }
 function updateShiftTarget() {
   if (!activeKey) { shift.tx = shift.ty = 0; return; }
   if (innerWidth < 720) { const hb = document.getElementById('hud').getBoundingClientRect().bottom; shift.tx = 0; shift.ty = Math.round((panel.offsetHeight - hb) / 2); }
-  else { shift.tx = 188; shift.ty = 0; }
+  else { shift.tx = Math.round((panel.offsetWidth + 16) / 2); shift.ty = 0; }
 }
 function interact(k) {
   if (!k) return;
@@ -905,8 +1068,9 @@ function interact(k) {
   if (k === 'owner') { ownerTalk(); return; }
   if (k === 'cat') { catPet(); return; }
   if (activeKey === k) return;
-  const prev = activeKey; activeKey = k; formOpen = false;
+  const prev = activeKey; activeKey = k; formOpen = false; fixedEdit = false; ledgerMore = false; ledgerAll = false;
   if (prev === 'fridge') fridgeOpen(false); if (prev === 'safe') drawerOpen(false);
+  panel.classList.toggle('wide', k === 'ledger'); document.body.classList.toggle('panel-wide', k === 'ledger');
   renderPanel(); pBody.scrollTop = 0;
   panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); document.body.classList.add('panel-open');
   if (k === 'fridge') fridgeOpen(true); if (k === 'safe') drawerOpen(true); if (k === 'pos') screenGlow = 0.6;
@@ -916,21 +1080,42 @@ function interact(k) {
 function closePanel() {
   if (!activeKey) return;
   if (activeKey === 'fridge') fridgeOpen(false); if (activeKey === 'safe') drawerOpen(false);
-  activeKey = null; formOpen = false;
+  activeKey = null; formOpen = false; fixedEdit = false;
+  document.body.classList.remove('panel-wide');
   panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); document.body.classList.remove('panel-open');
   shift.tx = shift.ty = 0; setView('seat');
 }
 document.getElementById('pClose').addEventListener('click', closePanel);
 const digits = v => String(v || '').replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
 pBody.addEventListener('input', e => {
-  if (e.target.id === 'fAmt') { const d = digits(e.target.value).slice(0, 10); e.target.value = d ? Number(d).toLocaleString('ko-KR') : ''; }
+  if (e.target.id === 'fAmt' || (e.target.classList && e.target.classList.contains('amt'))) { const d = digits(e.target.value).slice(0, 10); e.target.value = d ? Number(d).toLocaleString('ko-KR') : ''; }
   e.target.classList && e.target.classList.remove('err');
 });
 pBody.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const b = pBody.querySelector('.save'); b && b.click(); } e.stopPropagation(); });
 pBody.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return; const act = b.dataset.act;
+  const b = e.target.closest('button'); if (!b || !pBody.contains(b)) return; const act = b.dataset.act;
   if (act === 'open-form') { formOpen = true; renderPanel(); const f = pBody.querySelector(activeKey === 'fridge' ? '#fName' : '#fAmt'); f && f.focus({ preventScroll: true }); pBody.scrollTop = pBody.scrollHeight; return; }
   if (act === 'cancel') { formOpen = false; renderPanel(); return; }
+  if (b.dataset.mode) { ledgerAll = b.dataset.mode === 'all'; renderPanel(); return; }
+  if (act === 'more') { ledgerMore = true; renderPanel(); return; }
+  if (act === 'edit-fixed') { fixedEdit = true; renderPanel(); const f = pBody.querySelector('[data-fx]'); f && f.focus({ preventScroll: true }); return; }
+  if (act === 'cancel-fixed') { fixedEdit = false; renderPanel(); return; }
+  if (act === 'save-fixed') {
+    const ins = [...pBody.querySelectorAll('[data-fx]')]; let bad = null;
+    const vals = ins.map(i => { const v = Number(digits(i.value) || 0); if (v > 100000000) bad = i; return v; });
+    if (bad) { bad.classList.add('err'); bad.focus(); return; }
+    vals.forEach((v, i) => { DATA.fixed[+ins[i].dataset.fx].amount = v; });
+    saveData(DATA); fixedEdit = false; renderPanel(); renderHud(true); return;
+  }
+  if (act === 'save-personal') {
+    const n = pBody.querySelector('#fName'), i = pBody.querySelector('#fAmt');
+    const name = (n.value || '').trim().slice(0, 20), amount = Number(digits(i.value));
+    if (!name) { n.classList.add('err'); n.focus(); return; }
+    if (!amount || amount > 100000000) { i.classList.add('err'); i.focus(); return; }
+    const rec = { id: uid(), date: kst().date, name, amount };
+    (DATA.personal = DATA.personal || []).push(rec); saveData(DATA); lastNewId = rec.id; formOpen = false; ledgerAll = true;
+    renderPanel(); return;
+  }
   if (b.dataset.ch) { saleChannel = b.dataset.ch; pBody.querySelectorAll('[data-ch]').forEach(x => x.classList.toggle('on', x === b)); return; }
   if (b.dataset.add) { const i = pBody.querySelector('#fAmt'); i.value = Math.min(Number(digits(i.value) || 0) + Number(b.dataset.add), 9999999999).toLocaleString('ko-KR'); i.classList.remove('err'); return; }
   if (b.dataset.name) { const i = pBody.querySelector('#fName'); i.value = b.dataset.name; i.classList.remove('err'); const a = pBody.querySelector('#fAmt'); a && a.focus({ preventScroll: true }); return; }
@@ -1014,7 +1199,7 @@ face.addEventListener('click', () => { firstUse(); ownerTalk(); });
 const tagsEl = document.getElementById('tags');
 Object.entries(OBJ).forEach(([k, o]) => {
   const el = document.createElement('button'); el.type = 'button'; el.className = 'tg';
-  el.innerHTML = `<span class="b">${o.emoji}</span><span class="e"><span class="ee"></span>${o.emoji} ${o.name}</span>`;
+  el.innerHTML = `<span class="b">${o.emoji}</span><span class="e"><span class="ee"></span>${o.emoji} ${o.short || o.name}</span>`;
   el.setAttribute('aria-label', o.name + ' 보기');
   el.addEventListener('click', e => { e.stopPropagation(); firstUse(); if (el.classList.contains('edge')) { if (o.focus) setView(k); else lookAt(o.anchor); } else interact(k); });
   tagsEl.appendChild(el); o.el = el; o.arrow = el.querySelector('.ee');
