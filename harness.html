@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>솔로운영 3D 검증 하네스</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; background:#0b0d10; color:#c9d3df; font:13px/1.4 -apple-system,system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif; }
+  h1 { font-size:14px; margin:10px 12px 6px; color:#8ea3b8; font-weight:600; letter-spacing:.02em; }
+  .row { display:flex; gap:14px; align-items:flex-start; padding:0 12px 14px; }
+  .box { border:1px solid #1f2a36; border-radius:10px; overflow:hidden; background:#000; }
+  .cap { font-size:11px; color:#7f8fa3; padding:4px 8px; background:#11161c; }
+  iframe { display:block; border:0; background:#000; }
+  #desk { width:760px; height:520px; }
+  #mob { width:360px; height:720px; }
+</style>
+</head>
+<body>
+<h1>솔로운영 3D 시제품 검증 하네스 — 데스크톱 / 360px 모바일</h1>
+<div class="row">
+  <div class="box"><div class="cap" id="dcap">desktop 760x520</div><iframe id="desk" src="./index.html?frame=desktop"></iframe></div>
+  <div class="box"><div class="cap" id="mcap">mobile 360x720</div><iframe id="mob" src="./index.html?frame=mobile"></iframe></div>
+</div>
+<script>
+  const d=document.getElementById('desk'), m=document.getElementById('mob');
+  document.getElementById('dcap').textContent='desktop '+d.clientWidth+'x'+d.clientHeight;
+  document.getElementById('mcap').textContent='mobile '+m.clientWidth+'x'+m.clientHeight;
+</script>
+</body>
+</html>

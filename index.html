@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>솔로운영 3D · 매장 카운터</title>
+<meta name="theme-color" content="#07090c">
+<meta name="description" content="드래그해 돌려보고 물건을 눌러보는 3D 매장 카운터 가계부 시제품">
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --cyan:#62d3e3; --cyan-d:rgba(98,211,227,.35); --amber:#f0b25e;
+  --glass:rgba(16,20,26,.58); --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --text:#e9eef3; --muted:#8d98a5; --red:#ff8a7a; --green:#83e0ac;
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;background:#07090c;color:var(--text);overflow:hidden;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.glass{background:var(--glass);-webkit-backdrop-filter:blur(16px) saturate(1.25);backdrop-filter:blur(16px) saturate(1.25);border:1px solid var(--line)}
+
+#stage{position:fixed;inset:0;opacity:0;transition:opacity 1s ease}
+#stage.ready{opacity:1}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
+
+/* 로딩 / 폴백 */
+#loader,#fallback{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:50;background:#07090c;transition:opacity .6s ease}
+#loader.hide{opacity:0;pointer-events:none}
+#loader p,#fallback p{color:var(--muted);font-size:14px;text-align:center;line-height:1.6;padding:0 24px}
+#fallback b{color:var(--text);font-size:16px}
+.spin{width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.08);border-top-color:var(--cyan);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+[hidden]{display:none!important}
+
+/* HUD */
+#hud{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;right:12px;z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;pointer-events:none}
+#hud>*{pointer-events:auto}
+.mark{font-size:12px;font-weight:600;letter-spacing:.14em;color:#c9d2db;display:flex;align-items:center;gap:8px;white-space:nowrap;justify-self:start}
+.mark i{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.hudbar{display:flex;align-items:center;border-radius:14px;padding:7px 7px 7px 4px;min-width:0}
+.stat{flex:1 1 0;min-width:0;padding:0 16px;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line)}
+.stat:first-child{border-left:0}
+.stat span{font-size:11px;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
+.stat b{font-size:18px;font-weight:600;white-space:nowrap;transition:color .3s,text-shadow .3s}
+.stat b.bump{color:#fff;text-shadow:0 0 14px var(--cyan)}
+#hNet.pos{color:var(--green)} #hNet.neg{color:var(--red)}
+.viewbtn em{font-style:normal}
+.viewbtn{flex:none;display:flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);font-size:12px;color:#cfd7df;white-space:nowrap;transition:background .2s,border-color .2s}
+.viewbtn:hover,.viewbtn:focus-visible{background:rgba(98,211,227,.1);border-color:var(--cyan-d);outline:none}
+
+/* 3D 라벨 */
+#labels,#fx{position:fixed;inset:0;pointer-events:none;z-index:10;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;will-change:transform;transition:opacity .3s}
+.lbl .pill{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:13px;font-weight:600;white-space:nowrap;color:#eef3f7;border:1px solid rgba(98,211,227,.22);
+  background:rgba(14,18,24,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .25s cubic-bezier(.3,1.6,.5,1),box-shadow .25s,border-color .25s,background .25s;transform-origin:50% 100%}
+.lbl .pill small{font-size:11px;font-weight:500;color:var(--cyan);opacity:.9}
+.lbl .pill::after{content:"";position:absolute;left:50%;bottom:-5px;width:8px;height:8px;margin-left:-4px;transform:rotate(45deg);background:inherit;border-right:1px solid rgba(98,211,227,.22);border-bottom:1px solid rgba(98,211,227,.22)}
+.lbl .pill{position:relative}
+.lbl.small .pill{font-size:12px;padding:5px 9px;opacity:.85}
+.lbl.hot .pill{transform:scale(1.1);border-color:var(--cyan);background:rgba(20,40,48,.78);box-shadow:0 0 0 3px rgba(98,211,227,.12),0 0 22px rgba(98,211,227,.35)}
+.lbl.dim{opacity:.28}
+.lbl.off{opacity:0;pointer-events:none}
+.lbl .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:beat 1.8s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+/* 이펙트 텍스트 / 말풍선 */
+.ftext{position:absolute;left:0;top:0;font-size:22px;font-weight:700;color:#fff;white-space:nowrap;text-shadow:0 0 16px rgba(240,178,94,.8),0 2px 0 rgba(0,0,0,.3);will-change:transform,opacity}
+.ftext.cool{text-shadow:0 0 16px rgba(98,211,227,.9),0 2px 0 rgba(0,0,0,.3)}
+#bubble{position:absolute;left:0;top:0;max-width:230px;padding:10px 13px;border-radius:14px;font-size:13px;line-height:1.5;color:#f1f5f8;pointer-events:none;opacity:0;transition:opacity .25s;will-change:transform}
+#bubble.show{opacity:1}
+#bubble::after{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;margin-left:-5px;transform:rotate(45deg);background:rgba(16,20,26,.8);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+#bubble b{color:var(--amber)}
+
+/* 패널 */
+#panel{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 78px);right:16px;bottom:16px;width:360px;border-radius:18px;display:flex;flex-direction:column;
+  transform:translateX(calc(100% + 30px));opacity:0;transition:transform .45s cubic-bezier(.2,.9,.25,1),opacity .3s;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#panel.open{transform:none;opacity:1}
+.grab{display:none}
+.phead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:18px 18px 10px}
+.ptag{font-size:11px;letter-spacing:.12em;color:var(--cyan);margin-bottom:4px}
+.phead h2{font-size:18px;font-weight:600}
+#pClose{width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--line2);font-size:14px;color:#cdd5dd}
+#pClose:hover{background:rgba(255,255,255,.06)}
+.pbody{flex:1;overflow:auto;padding:4px 18px 18px;-webkit-overflow-scrolling:touch}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 16px}
+.card{border:1px solid var(--line);border-radius:12px;padding:9px 8px 8px;background:rgba(255,255,255,.025);min-width:0}
+.card span{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+.card b{display:block;font-size:13px;letter-spacing:-.02em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{margin:6px 0 16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,rgba(98,211,227,.07),rgba(255,255,255,.01))}
+.big span{font-size:12px;color:var(--muted)}
+.big b{display:block;font-size:26px;font-weight:650;margin-top:2px}
+.big em{font-style:normal;font-size:12px;color:var(--muted)}
+.sec{font-size:12px;color:var(--muted);letter-spacing:.06em;margin:4px 0 6px;display:flex;justify-content:space-between}
+.rows{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:14px}
+.row .l{display:flex;align-items:center;gap:8px;min-width:0}
+.row .l span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .d{font-size:12px;color:var(--muted);white-space:nowrap}
+.row b{font-weight:600;white-space:nowrap}
+.row.new{animation:rowin .7s ease}
+@keyframes rowin{from{background:rgba(98,211,227,.18)}to{background:transparent}}
+.row.total{border-bottom:0;font-weight:600}
+.row.total b{font-size:16px}
+.row.minus b{color:#d6dde4}
+.row.net b.pos{color:var(--green)} .row.net b.neg{color:var(--red)}
+.chip{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--line2);color:#c6cfd8;white-space:nowrap}
+.chip.c-매장{border-color:rgba(98,211,227,.4);color:var(--cyan)}
+.chip.c-배달{border-color:rgba(240,178,94,.45);color:var(--amber)}
+.chip.c-예약{border-color:rgba(180,160,230,.45);color:#c7b6f0}
+.empty{font-size:13px;color:var(--muted);padding:14px 2px}
+.primary{width:100%;margin-top:14px;height:46px;border-radius:12px;border:1px solid var(--cyan-d);background:rgba(98,211,227,.1);color:#dff7fb;font-size:15px;font-weight:600;transition:background .2s,transform .1s}
+.primary:hover{background:rgba(98,211,227,.17)}
+.primary:active{transform:scale(.98)}
+.form{margin-top:14px;padding:14px;border:1px solid var(--line2);border-radius:14px;background:rgba(255,255,255,.03);animation:fin .3s ease}
+@keyframes fin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.form label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+.form .field{margin-bottom:12px}
+.form input{width:100%;height:46px;border-radius:10px;border:1px solid var(--line2);background:rgba(0,0,0,.25);padding:0 12px;font-size:18px;outline:none;transition:border-color .2s}
+.form input:focus{border-color:var(--cyan)}
+.form input.err{border-color:var(--red)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:0;height:36px;border-radius:9px;border:1px solid var(--line2);font-size:13px;color:#c9d1d9;white-space:nowrap;padding:0 6px}
+.seg button.on{border-color:var(--cyan);color:#fff;background:rgba(98,211,227,.14)}
+.quick{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.quick button{height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);font-size:12px;color:#b9c3cd}
+.quick button:hover{border-color:var(--line2);color:#fff}
+.factions{display:flex;gap:8px;margin-top:4px}
+.factions button{flex:1;height:44px;border-radius:11px;font-size:15px;font-weight:600}
+.factions .save{background:var(--cyan);color:#06171b}
+.factions .cancel{border:1px solid var(--line2);color:#c9d1d9}
+.hint{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* 하단 */
+#foot{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:15;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;transition:opacity .3s;padding:0 16px}
+#foot p{font-size:12.5px;color:#aab4be;text-align:center;line-height:1.45;padding:7px 14px;border-radius:999px;background:rgba(10,13,17,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line)}
+#sampleBtn{pointer-events:auto;font-size:11px;color:#6f7a86;padding:4px 8px;border-radius:6px}
+#sampleBtn:hover{color:#b6c0ca}
+#sampleBtn.warn{color:var(--amber)}
+body.panel-open #foot{opacity:0;pointer-events:none}
+body.panel-open #foot *{pointer-events:none}
+
+/* 데스크톱 폭에서 패널이 열리면 오른쪽 HUD 여백 */
+@media (min-width:720px){
+  body.panel-open #hud{right:392px}
+}
+
+/* 모바일: 아래 시트 */
+@media (max-width:719px){
+  #hud{grid-template-columns:1fr;gap:7px;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 8px)}
+  .mark{font-size:11px;padding-left:4px}
+  .hudbar{padding:6px 5px 6px 2px;border-radius:12px}
+  .stat{padding:0 8px}
+  .stat span{font-size:10px}
+  .stat b{font-size:13.5px}
+  .viewbtn{height:34px;padding:0 9px;font-size:15px}
+  .viewbtn em{display:none}
+  #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-height:60vh;max-height:60dvh;border-radius:20px 20px 0 0;border-bottom:0;
+    transform:translateY(105%);padding-bottom:env(safe-area-inset-bottom,0px)}
+  #panel.open{transform:none}
+  .grab{display:block;width:38px;height:4px;border-radius:4px;background:rgba(255,255,255,.18);margin:8px auto 0}
+  .phead{padding:10px 14px 8px}
+  .phead h2{font-size:16px}
+  .pbody{padding:2px 14px 16px}
+  .card{padding:8px 8px 7px}
+  .card b{font-size:13px}
+  .big b{font-size:22px}
+  .lbl .pill{font-size:12px;padding:5px 9px}
+  .lbl .pill small{font-size:10px}
+  #foot p{font-size:12px}
+}
+@media (max-width:340px){ .stat b{font-size:12.5px} .stat{padding:0 6px} }
+@media (prefers-reduced-motion:reduce){
+  .lbl .dot{animation:none} .spin{animation-duration:2s}
+  #panel{transition:opacity .2s}
+}
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="stage" aria-label="3D 매장 카운터"></div>
+
+<header id="hud">
+  <div class="mark"><i></i>솔로운영 3D</div>
+  <div class="hudbar glass" role="group" aria-label="이번 달 요약">
+    <div class="stat"><span>총매출</span><b id="hSales" class="num">₩0</b></div>
+    <div class="stat"><span>지출</span><b id="hExp" class="num">₩0</b></div>
+    <div class="stat"><span>순익</span><b id="hNet" class="num">₩0</b></div>
+    <button id="resetView" class="viewbtn" type="button" aria-label="시점 초기화" title="시점 초기화">🔄<em>시점 초기화</em></button>
+  </div>
+</header>
+
+<div id="labels"></div>
+<div id="fx"><div id="bubble" class="glass" role="status" aria-live="polite"></div></div>
+
+<aside id="panel" class="glass" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="pTitle">
+  <div class="grab"></div>
+  <div class="phead">
+    <div><div class="ptag" id="pTag"></div><h2 id="pTitle"></h2></div>
+    <button id="pClose" type="button" aria-label="패널 닫기">✕</button>
+  </div>
+  <div class="pbody" id="pBody"></div>
+</aside>
+
+<footer id="foot">
+  <p>화면을 드래그해 돌려보고, 물건을 눌러보세요</p>
+  <button id="sampleBtn" type="button">↺ 샘플 데이터</button>
+</footer>
+
+<div id="loader"><div class="spin"></div><p>솔로운영 3D 불러오는 중…</p></div>
+<div id="fallback" hidden><b>3D 화면을 열 수 없어요</b><p id="fallbackMsg">이 기기·브라우저는 WebGL(3D 그래픽)을 지원하지 않아요.<br>최신 크롬·사파리·삼성 인터넷에서 다시 열어 주세요.</p></div>
+
+<script>
+// WebGL 지원 확인 + 불러오기 실패 대비 (모듈보다 먼저 실행)
+(function(){
+  var ok = false;
+  try { var c = document.createElement('canvas'); ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { ok = false; }
+  function fail(msg){
+    var l = document.getElementById('loader'); if (l) l.hidden = true;
+    var f = document.getElementById('fallback'); if (f) f.hidden = false;
+    if (msg) document.getElementById('fallbackMsg').innerHTML = msg;
+  }
+  window.__solo3dFail = fail;
+  if (!ok) { window.__solo3dNoGL = true; fail(); return; }
+  setTimeout(function(){
+    if (!window.__solo3dStarted) fail('3D 엔진을 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.');
+  }, 15000);
+})();
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+if (!window.__solo3dNoGL) {
+window.__solo3dStarted = true;
+
+/* =========================================================
+   1. 데이터 (localStorage: solo3d_v1)
+   ========================================================= */
+const KEY = 'solo3d_v1';
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COARSE = window.matchMedia('(pointer: coarse)').matches;
+
+function kst(d = new Date()) {
+  const o = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+    .formatToParts(d).forEach(p => { o[p.type] = p.value; });
+  if (o.hour === '24') o.hour = '00';
+  return { y: +o.year, m: +o.month, d: +o.day, ym: `${o.year}-${o.month}`, date: `${o.year}-${o.month}-${o.day}`, time: `${o.hour}:${o.minute}` };
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+function makeSample() {
+  const k = kst();
+  const day = n => `${k.ym}-${String(Math.max(1, k.d - n)).padStart(2, '0')}`;
+  return {
+    v: 1,
+    sales: [
+      [6, '11:40', 412000, '매장'], [5, '19:20', 186500, '배달'], [4, '12:10', 240000, '예약'],
+      [3, '20:30', 468000, '매장'], [2, '18:50', 351500, '배달'], [1, '13:05', 584000, '매장']
+    ].map(([n, time, amount, channel]) => ({ id: uid(), date: day(n), time, amount, channel })),
+    ingredients: [
+      [6, '채소', 38000], [5, '육류', 120000], [4, '빵·유제품', 64000], [2, '소스·양념', 32000], [1, '음료', 45000]
+    ].map(([n, name, amount]) => ({ id: uid(), date: day(n), name, amount })),
+    fixed: [
+      { name: '임차료', amount: 1200000 }, { name: '공과금(전기·수도)', amount: 180000 },
+      { name: '통신비', amount: 55000 }, { name: '세금과공과', amount: 90000 }
+    ]
+  };
+}
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && Array.isArray(d.sales) && Array.isArray(d.ingredients) && Array.isArray(d.fixed)) return d;
+  } catch (e) { /* 무시하고 샘플 사용 */ }
+  const s = makeSample(); saveData(s); return s;
+}
+function saveData(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) { /* 저장 불가(사생활 모드 등) */ } }
+let DATA = loadData();
+
+const sum = a => a.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+function month() {
+  const k = kst();
+  const sales = DATA.sales.filter(x => String(x.date).startsWith(k.ym));
+  const ing = DATA.ingredients.filter(x => String(x.date).startsWith(k.ym));
+  const s = sum(sales), i = sum(ing), f = sum(DATA.fixed);
+  return { k, sales, ing, s, i, f, exp: i + f, net: s - i - f, today: sum(DATA.sales.filter(x => x.date === k.date)) };
+}
+const won = n => (n < 0 ? '-' : '') + '₩' + Math.abs(Math.round(n)).toLocaleString('ko-KR');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const md = date => { const p = String(date).split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}` : ''; };
+const recent = arr => arr.slice().sort((a, b) => (b.date + (b.time || '') + b.id).localeCompare(a.date + (a.time || '') + a.id)).slice(0, 5);
+
+/* =========================================================
+   2. 렌더러 · 장면 · 카메라
+   ========================================================= */
+const stage = document.getElementById('stage');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  window.__solo3dFail && window.__solo3dFail();
+  throw e;
+}
+const DPR_CAP = COARSE ? 1.6 : 2;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x07090c);
+scene.fog = new THREE.Fog(0x07090c, 11, 26);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+pmrem.dispose();
+
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.1, 80);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 1.6;
+controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI * 0.47;
+controls.minPolarAngle = 0.25;
+controls.rotateSpeed = COARSE ? 0.7 : 0.6;
+controls.zoomSpeed = 0.8;
+
+/* ---- 재질 / 텍스처 도우미 ---- */
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.6, metalness: 0, envMapIntensity: 0.45 }, o));
+function add(parent, geo, mat, x = 0, y = 0, z = 0, cast = true) {
+  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true; parent.add(m); return m;
+}
+const B = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); return t;
+}
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const woodTex = canvasTex(512, 128, (g, w, h) => {
+  g.fillStyle = '#7b5536'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 110; i++) {
+    const y = rnd() * h; g.strokeStyle = `rgba(${45 + rnd() * 40 | 0},${25 + rnd() * 18 | 0},12,${0.12 + rnd() * 0.28})`;
+    g.lineWidth = 0.6 + rnd() * 2.2; g.beginPath(); g.moveTo(0, y);
+    for (let x = 0; x <= w; x += 24) g.lineTo(x, y + Math.sin(x * 0.012 + i) * 2.5 + (rnd() - 0.5) * 1.2);
+    g.stroke();
+  }
+});
+const stoneTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = '#2b2f34'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 2600; i++) { const v = 30 + rnd() * 40 | 0; g.fillStyle = `rgba(${v},${v + 3},${v + 6},${0.25 + rnd() * 0.4})`; g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 2, 1 + rnd() * 2); }
+});
+const floorTex = canvasTex(512, 512, (g, w, h) => {
+  const gr = g.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2);
+  gr.addColorStop(0, '#2a3138'); gr.addColorStop(0.45, '#151a1f'); gr.addColorStop(1, '#07090c');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+});
+
+/* ---- 조명 ---- */
+scene.add(new THREE.HemisphereLight(0x9fb6c8, 0x0a0c10, 0.55));
+const key = new THREE.SpotLight(0xfff0dc, 110, 22, 0.55, 0.75, 1.6);
+key.position.set(1.6, 7.5, 4.6); key.target.position.set(0, 0.8, 0);
+key.castShadow = true; key.shadow.mapSize.set(COARSE ? 512 : 1024, COARSE ? 512 : 1024);
+key.shadow.camera.near = 3; key.shadow.camera.far = 16; key.shadow.bias = -0.0004; key.shadow.radius = 4;
+scene.add(key, key.target);
+const rim = new THREE.DirectionalLight(0x6fd8ea, 1.0); rim.position.set(-3, 10, -4.5); scene.add(rim);
+const warm = new THREE.PointLight(0xf0b25e, 7, 9, 1.6); warm.position.set(-2.6, 2.3, 1.8); scene.add(warm);
+
+/* ---- 바닥(살짝 반사) + 얇은 링 ---- */
+const floor = add(scene, new THREE.CircleGeometry(16, 72), M(0xffffff, { map: floorTex, roughness: 0.38, metalness: 0.3, envMapIntensity: 0.22 }), 0, 0, 0, false);
+floor.rotation.x = -Math.PI / 2;
+[3.9, 5.8].forEach((r, i) => {
+  const ring = new THREE.Mesh(new THREE.RingGeometry(r, r + 0.012, 128), new THREE.MeshBasicMaterial({ color: 0x62d3e3, transparent: true, opacity: i ? 0.06 : 0.11, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.003; scene.add(ring);
+});
+
+/* =========================================================
+   3. 오브젝트
+   ========================================================= */
+const OBJ = {}; // key → { root, anchor, label, ring, h, focus }
+const COUNTER_TOP = 1.03;
+
+/* ---- 카운터 ---- */
+const counter = new THREE.Group(); counter.position.set(-0.3, 0, 0); scene.add(counter);
+add(counter, B(3.2, 0.96, 0.86), M(0xffffff, { map: stoneTex, roughness: 0.75, metalness: 0.1 }), 0, 0.48, 0);
+add(counter, B(3.4, 0.07, 1.02), M(0xffffff, { map: woodTex, roughness: 0.42, metalness: 0.05, envMapIntensity: 0.6 }), 0, 0.995, 0);
+add(counter, B(3.22, 0.012, 0.012), new THREE.MeshBasicMaterial({ color: 0x62d3e3 }), 0, 0.09, 0.437, false); // 바닥 LED 라인
+for (let i = -1; i <= 1; i++) add(counter, B(0.9, 0.62, 0.01), M(0x33383e, { roughness: 0.55, metalness: 0.2 }), i * 1.02, 0.52, 0.434, false);
+
+/* ---- 소품: 커피컵, 영수증, 화분 ---- */
+const cup = new THREE.Group(); cup.position.set(-1.35, COUNTER_TOP, 0.18); scene.add(cup);
+add(cup, new THREE.CylinderGeometry(0.048, 0.038, 0.12, 18), M(0xf1ede6, { roughness: 0.5 }), 0, 0.06, 0);
+add(cup, new THREE.CylinderGeometry(0.05, 0.046, 0.045, 18), M(0xa8743f, { roughness: 0.8 }), 0, 0.06, 0);
+add(cup, new THREE.CylinderGeometry(0.052, 0.05, 0.014, 18), M(0x2b2f34, { roughness: 0.4 }), 0, 0.127, 0);
+const receiptOnTop = add(scene, B(0.075, 0.002, 0.17), M(0xf4f2ec, { roughness: 0.9 }), 0.78, COUNTER_TOP + 0.002, 0.22, false);
+receiptOnTop.rotation.y = 0.5;
+const plant = new THREE.Group(); plant.position.set(-1.8, COUNTER_TOP, -0.22); scene.add(plant);
+add(plant, new THREE.CylinderGeometry(0.09, 0.07, 0.15, 16), M(0xc9b9a2, { roughness: 0.85 }), 0, 0.075, 0);
+const leafMat = M(0x5f8c6a, { roughness: 0.7, flatShading: true });
+[[0, 0.25, 0, 0.11], [0.07, 0.33, 0.03, 0.08], [-0.06, 0.31, -0.03, 0.085], [0.02, 0.4, -0.02, 0.07]].forEach(([x, y, z, r]) => add(plant, new THREE.IcosahedronGeometry(r, 0), leafMat, x, y, z));
+
+/* ---- 포스기 ---- */
+const pos = new THREE.Group(); pos.position.set(0.25, COUNTER_TOP, 0.06); scene.add(pos);
+const posDark = M(0x1c2026, { roughness: 0.35, metalness: 0.4 });
+add(pos, B(0.42, 0.06, 0.32), posDark, 0, 0.03, 0);
+add(pos, B(0.07, 0.2, 0.06), posDark, 0, 0.15, -0.06);
+for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++)
+  add(pos, B(0.05, 0.012, 0.035), M(c === 3 && r === 0 ? 0xf0b25e : 0x3a414a, { roughness: 0.4, emissive: c === 3 && r === 0 ? 0x5a3a10 : 0x000000 }), -0.11 + c * 0.065, 0.066, 0.06 + r * 0.05, false);
+const posScreenCanvas = document.createElement('canvas'); posScreenCanvas.width = 320; posScreenCanvas.height = 200;
+const posTex = new THREE.CanvasTexture(posScreenCanvas); posTex.colorSpace = THREE.SRGBColorSpace;
+const screenPivot = new THREE.Group(); screenPivot.position.set(0, 0.25, -0.05); screenPivot.rotation.x = -0.38; pos.add(screenPivot);
+add(screenPivot, B(0.38, 0.25, 0.025), posDark, 0, 0, 0);
+const screenMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: posTex, emissiveIntensity: 0.9, roughness: 0.2, metalness: 0, envMapIntensity: 0.6 });
+add(screenPivot, new THREE.PlaneGeometry(0.34, 0.212), screenMat, 0, 0, 0.0135, false);
+const printer = new THREE.Group(); printer.position.set(0.36, 0, 0.0); pos.add(printer);
+add(printer, B(0.14, 0.09, 0.16), M(0xe3e6e9, { roughness: 0.4, metalness: 0.1 }), 0, 0.045, 0);
+add(printer, B(0.06, 0.002, 0.1), M(0xf6f4ef, { roughness: 0.9 }), 0, 0.12, 0.05, false).rotation.x = -0.9;
+function drawPosScreen(today, monthSales) {
+  const g = posScreenCanvas.getContext('2d'), w = 320, h = 200;
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#0a1b21'); gr.addColorStop(1, '#0f2b33');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = 'rgba(98,211,227,.18)'; g.fillRect(0, 0, w, 4);
+  const F = '-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+  g.fillStyle = '#7fcfdc'; g.font = `600 20px ${F}`; g.fillText('오늘 매출', 22, 44);
+  let size = 46; const txt = won(today);
+  do { g.font = `700 ${size}px ${F}`; size -= 2; } while (g.measureText(txt).width > w - 44 && size > 20);
+  g.fillStyle = '#ffffff'; g.fillText(txt, 22, 104);
+  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `500 17px ${F}`; g.fillText('이번 달 ' + won(monthSales), 22, 142);
+  ['#62d3e3', '#f0b25e', '#3a4a52'].forEach((c, i) => { g.fillStyle = c; g.fillRect(22 + i * 96, 164, 84, 14); });
+  posTex.needsUpdate = true;
+}
+
+/* ---- 사장님 캐릭터 ---- */
+const owner = new THREE.Group(); owner.position.set(-0.55, 0, -0.88); scene.add(owner);
+const body = new THREE.Group(); owner.add(body);
+const skin = M(0xebc6a3, { roughness: 0.7 }), shirt = M(0x3d4652, { roughness: 0.75 }), apron = M(0xc98a3c, { roughness: 0.7, side: THREE.DoubleSide });
+add(body, new THREE.CapsuleGeometry(0.27, 0.56, 6, 16), shirt, 0, 1.24, 0);
+add(body, new THREE.CylinderGeometry(0.279, 0.279, 0.5, 18, 1, true, -0.95, 1.9), apron, 0, 1.16, 0);
+add(body, new THREE.CylinderGeometry(0.2, 0.25, 0.22, 18, 1, true, -0.55, 1.1), apron, 0, 1.52, 0.03);
+const head = new THREE.Group(); head.position.set(0, 2.04, 0); body.add(head);
+add(head, new THREE.SphereGeometry(0.235, 22, 16), skin, 0, 0, 0);
+const eyeM = M(0x15181c, { roughness: 0.3 });
+add(head, new THREE.SphereGeometry(0.026, 10, 8), eyeM, -0.08, 0.02, 0.212, false);
+add(head, new THREE.SphereGeometry(0.026, 10, 8), eyeM, 0.08, 0.02, 0.212, false);
+const cheekM = M(0xe89a8a, { roughness: 0.8 });
+add(head, new THREE.SphereGeometry(0.03, 8, 6), cheekM, -0.14, -0.05, 0.18, false).scale.set(1, 0.6, 0.4);
+add(head, new THREE.SphereGeometry(0.03, 8, 6), cheekM, 0.14, -0.05, 0.18, false).scale.set(1, 0.6, 0.4);
+const mouth = add(head, new THREE.TorusGeometry(0.035, 0.008, 6, 12, Math.PI), eyeM, 0, -0.06, 0.218, false); mouth.rotation.z = Math.PI;
+const capM = M(0x23292f, { roughness: 0.6 });
+add(head, new THREE.SphereGeometry(0.245, 22, 10, 0, Math.PI * 2, 0, Math.PI * 0.5), capM, 0, 0.075, 0);
+const brim = add(head, new THREE.CylinderGeometry(0.17, 0.17, 0.018, 18, 1, false, -1.2, 2.4), M(0x62d3e3, { roughness: 0.5 }), 0, 0.085, 0.13); brim.scale.set(1.05, 1, 1.1);
+function arm(side) {
+  const p = new THREE.Group(); p.position.set(0.3 * side, 1.68, 0.02); body.add(p);
+  add(p, new THREE.CapsuleGeometry(0.075, 0.34, 4, 10), shirt, 0, -0.24, 0);
+  add(p, new THREE.SphereGeometry(0.075, 12, 10), skin, 0, -0.5, 0);
+  p.rotation.z = 0.16 * side; p.rotation.x = -0.25; return p;
+}
+const armL = arm(-1), armR = arm(1);
+
+/* ---- 냉장고 (문 2짝 = 경첩 피벗) ---- */
+const FW = 1.15, FH = 2.05, FD = 0.72;
+const fridge = new THREE.Group(); fridge.position.set(2.45, 0, -0.25); fridge.rotation.y = -0.18; scene.add(fridge);
+const steel = M(0xcdd3d8, { roughness: 0.32, metalness: 0.65, envMapIntensity: 0.7 });
+const inner = M(0xe9eef1, { roughness: 0.6, emissive: 0x9fd8e6, emissiveIntensity: 0 });
+add(fridge, B(FW, FH, 0.04), steel, 0, FH / 2, -FD / 2 + 0.02);
+add(fridge, B(0.04, FH, FD), steel, -FW / 2 + 0.02, FH / 2, 0);
+add(fridge, B(0.04, FH, FD), steel, FW / 2 - 0.02, FH / 2, 0);
+add(fridge, B(FW, 0.05, FD), steel, 0, FH - 0.025, 0);
+add(fridge, B(FW, 0.1, FD), M(0x1d2227, { roughness: 0.6, metalness: 0.3 }), 0, 0.05, 0);
+add(fridge, B(FW - 0.08, FH - 0.16, 0.01), inner, 0, FH / 2, -FD / 2 + 0.045, false);
+add(fridge, B(FW - 0.08, 0.01, FD - 0.06), inner, 0, 0.105, 0, false);
+const SHELF_Y = [0.56, 1.06, 1.56];
+const shelfM = M(0xd6e4ea, { roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.75 });
+SHELF_Y.forEach(y => add(fridge, B(FW - 0.08, 0.016, FD - 0.12), shelfM, 0, y, -0.02, false));
+add(fridge, B(FW - 0.2, 0.012, 0.03), new THREE.MeshBasicMaterial({ color: 0xcff4fb }), 0, FH - 0.07, FD / 2 - 0.08, false);
+const fridgeLight = new THREE.PointLight(0xc9f1ff, 0, 2.4, 1.5); fridgeLight.position.set(0, 1.45, 0.05); fridge.add(fridgeLight);
+const doorM = M(0xdfe4e8, { roughness: 0.28, metalness: 0.6, envMapIntensity: 0.8 });
+const glassM = M(0x15232b, { roughness: 0.06, metalness: 0.35, envMapIntensity: 1.1 });
+const handleM = M(0x9aa4ad, { roughness: 0.25, metalness: 0.9 });
+function door(side) { // side -1: 왼쪽(경첩 왼쪽), +1: 오른쪽
+  const pivot = new THREE.Group(); pivot.position.set(side * FW / 2, 0.11, FD / 2); fridge.add(pivot);
+  const dw = FW / 2 - 0.006, dh = FH - 0.15;
+  add(pivot, B(dw, dh, 0.05), doorM, -side * dw / 2, dh / 2, 0.025);
+  add(pivot, B(dw - 0.14, dh * 0.42, 0.012), glassM, -side * dw / 2, dh * 0.66, 0.054, false);
+  add(pivot, B(0.025, 0.5, 0.03), handleM, -side * (dw - 0.06), dh * 0.55, 0.075);
+  if (side < 0) add(pivot, B(0.09, 0.03, 0.006), new THREE.MeshBasicMaterial({ color: 0x62d3e3 }), -side * dw / 2, dh * 0.93, 0.052, false);
+  return pivot;
+}
+const doorL = door(-1), doorR = door(1);
+// 냉장고 안 식자재
+const itemGeo = { box: B(0.2, 0.15, 0.2), tall: B(0.13, 0.27, 0.13), bottle: new THREE.CylinderGeometry(0.045, 0.05, 0.28, 12), jar: new THREE.CylinderGeometry(0.07, 0.07, 0.14, 14) };
+const itemH = { box: 0.15, tall: 0.27, bottle: 0.28, jar: 0.14 };
+const PAL = [0x8fb39a, 0xd9a25f, 0xc8735f, 0x9aa9c9, 0xe3d3a8, 0x7fb5c2, 0xb48fb3, 0xa9b86f];
+const hashStr = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+const fridgeItems = []; const MAX_ITEMS = 12;
+function makeItem(slot, name, pop) {
+  const h = hashStr(name + slot), kinds = ['box', 'bottle', 'jar', 'tall'], k = kinds[h % 4];
+  const mat = M(PAL[(h >> 3) % PAL.length], { roughness: k === 'bottle' ? 0.18 : 0.55, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0, envMapIntensity: 0.6 });
+  const shelf = Math.floor(slot / 4), col = slot % 4;
+  const y = SHELF_Y[shelf] + 0.008 + itemH[k] / 2;
+  const m = add(fridge, itemGeo[k], mat, -0.39 + col * 0.26, y, -0.06 + ((h >> 5) % 3) * 0.04, false);
+  m.rotation.y = ((h >> 7) % 10) * 0.12;
+  m.userData = { baseY: y, popT: -1, spawnT: pop ? performance.now() : -1 };
+  if (pop) m.scale.setScalar(0.001);
+  fridgeItems.push(m); return m;
+}
+function syncFridgeItems() {
+  fridgeItems.forEach(m => { fridge.remove(m); m.material.dispose(); }); fridgeItems.length = 0;
+  month().ing.slice(0, MAX_ITEMS).forEach((x, i) => makeItem(i, x.name, false));
+}
+
+/* ---- 금고(캐시드로어) + 장부 ---- */
+const safe = new THREE.Group(); safe.position.set(-2.55, 0, 0.35); safe.rotation.y = 0.38; scene.add(safe);
+const gun = M(0x30363d, { roughness: 0.38, metalness: 0.65, envMapIntensity: 0.7 });
+add(safe, B(0.72, 0.6, 0.62), gun, 0, 0.32, 0);
+add(safe, B(0.76, 0.04, 0.66), M(0x24292f, { roughness: 0.4, metalness: 0.6 }), 0, 0.64, 0);
+add(safe, B(0.76, 0.04, 0.66), M(0x24292f, { roughness: 0.4, metalness: 0.6 }), 0, 0.02, 0);
+const dial = add(safe, new THREE.CylinderGeometry(0.06, 0.06, 0.03, 20), M(0xf0b25e, { roughness: 0.3, metalness: 0.8, emissive: 0x2a1a05 }), 0.2, 0.47, 0.32);
+dial.rotation.x = Math.PI / 2;
+add(safe, B(0.3, 0.01, 0.005), M(0x62d3e3, { emissive: 0x62d3e3, emissiveIntensity: 0.6 }), -0.12, 0.47, 0.312, false);
+const drawer = new THREE.Group(); drawer.position.set(0, 0.17, 0.31); safe.add(drawer);
+add(drawer, B(0.64, 0.2, 0.035), M(0x3a414a, { roughness: 0.35, metalness: 0.6 }), 0, 0, 0.0175);
+add(drawer, B(0.22, 0.03, 0.03), handleM.clone(), 0, 0.02, 0.05);
+add(drawer, B(0.6, 0.16, 0.48), M(0x22262b, { roughness: 0.7, metalness: 0.2 }), 0, -0.005, -0.24, false);
+const coinGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.012, 16);
+const goldM = M(0xd8b25a, { roughness: 0.3, metalness: 0.95, envMapIntensity: 1 });
+const billGeo = B(0.16, 0.004, 0.08), billM = M(0x86ad94, { roughness: 0.8 });
+const receiptGeo = B(0.075, 0.002, 0.17), receiptM = M(0xf6f4ee, { roughness: 0.9, emissive: 0x222222 });
+for (let i = 0; i < 4; i++) add(drawer, billGeo, billM, -0.15 + i * 0.1, 0.08, -0.12, false).rotation.y = 0.2 * i;
+for (let i = 0; i < 7; i++) add(drawer, coinGeo, goldM, -0.22 + i * 0.07, 0.085, -0.3 + (i % 2) * 0.05, false);
+const book = new THREE.Group(); book.position.set(0.05, 0.66, 0.02); book.rotation.y = -0.35; safe.add(book);
+add(book, B(0.36, 0.05, 0.26), M(0x23344a, { roughness: 0.6 }), 0, 0.025, 0);
+add(book, B(0.34, 0.04, 0.245), M(0xf1ece0, { roughness: 0.9 }), 0.012, 0.026, 0, false);
+add(book, B(0.02, 0.052, 0.262), M(0xf0b25e, { roughness: 0.5 }), -0.17, 0.026, 0, false);
+const pen = add(book, new THREE.CylinderGeometry(0.008, 0.008, 0.24, 8), M(0x62d3e3, { roughness: 0.3, metalness: 0.4 }), 0.08, 0.06, 0.05, false);
+pen.rotation.set(Math.PI / 2, 0, 0.6);
+
+/* ---- 하이라이트 링 + 등록 ---- */
+function ringAt(parent, r, y) {
+  const m = new THREE.Mesh(new THREE.RingGeometry(r, r + 0.035, 72), new THREE.MeshBasicMaterial({ color: 0x62d3e3, transparent: true, opacity: 0, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = y; parent.add(m); return m;
+}
+function register(keyName, root, opts) {
+  const mats = new Set();
+  root.traverse(o => { if (o.isMesh && o.material && o.material.emissive) mats.add(o.material); });
+  mats.forEach(m => { m.userData.baseEm = m.emissive.clone(); m.userData.baseEI = m.emissiveIntensity; });
+  root.userData.key = keyName;
+  OBJ[keyName] = Object.assign({ root, mats: [...mats], h: 0 }, opts);
+}
+register('pos', pos, { anchor: V3(0.25, 1.62, 0.06), ring: ringAt(pos, 0.34, 0.003), label: '🖥️ 포스기', sub: '매출',
+  focus: { t: V3(0.3, 1.22, 0.06), dir: V3(0.3, 0.5, 1), dist: 3.3, fit: 0.95, hh: 0.45 } });
+register('fridge', fridge, { anchor: V3(2.4, 2.38, -0.2), ring: ringAt(fridge, 0.92, 0.004), label: '🧊 냉장고', sub: '식자재',
+  focus: { t: V3(2.35, 1.1, -0.1), dir: V3(-0.3, 0.28, 1), dist: 3.9, fit: 1.35, hh: 1.1 } });
+register('safe', safe, { anchor: V3(-2.55, 1.12, 0.35), ring: ringAt(safe, 0.62, 0.004), label: '💰 금고·고정비', sub: '',
+  focus: { t: V3(-2.5, 0.55, 0.35), dir: V3(0.35, 0.6, 1), dist: 3.0, fit: 0.85, hh: 0.55 } });
+register('owner', owner, { anchor: V3(-0.55, 2.52, -0.88), ring: null, label: '👋 사장님', sub: '', small: true,
+  focus: { t: V3(-0.5, 1.62, -0.85), dir: V3(0.1, 0.22, 1), dist: 3.5, fit: 0.9, hh: 0.9 } });
+const PICKABLE = Object.values(OBJ).map(o => o.root);
+
+/* =========================================================
+   4. 카메라 연출
+   ========================================================= */
+const HOME_T = V3(0.05, 0.95, 0), HOME_DIR = V3(0.08, 0.4, 1).normalize();
+const hfovTan = () => Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.aspect;
+function fitDist(base, halfW) { return Math.max(base, halfW / hfovTan()); }
+function homePos() { return HOME_T.clone().addScaledVector(HOME_DIR, fitDist(7.4, 3.05)); }
+function visibleFrac() { // 모바일 시트가 열렸을 때 3D가 보이는 세로 비율
+  if (!isSheet() || !active) return 1;
+  const hb = document.getElementById('hud').getBoundingClientRect().bottom;
+  return Math.max(0.25, (innerHeight - panel.offsetHeight - hb) / innerHeight);
+}
+function focusPos(f) {
+  const vt = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * visibleFrac();
+  const d = Math.max(fitDist(f.dist, f.fit), (f.hh || 0) / vt);
+  return f.t.clone().addScaledVector(f.dir.clone().normalize(), d);
+}
+const easeIO = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeBack = t => { const c1 = 1.5, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+let camTween = null;
+function flyTo(p, t, dur = 0.95) {
+  if (RM) dur = Math.min(dur, 0.35);
+  camTween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p.clone(), t1: t.clone(), s: performance.now(), d: dur * 1000 };
+  controls.enabled = false;
+}
+controls.addEventListener('start', () => { camTween = null; controls.enabled = true; ownerReturnAt = 0; });
+
+// 패널이 화면을 가릴 때 3D 중심을 보이는 영역으로 옮김 (setViewOffset)
+const shift = { x: 0, y: 0, tx: 0, ty: 0 };
+const isSheet = () => innerWidth < 720;
+function applyShift() {
+  shift.x += (shift.tx - shift.x) * 0.12; shift.y += (shift.ty - shift.y) * 0.12;
+  if (Math.abs(shift.x) < 0.3 && Math.abs(shift.y) < 0.3 && !shift.tx && !shift.ty) {
+    if (camera.view && camera.view.enabled) { camera.clearViewOffset(); }
+    shift.x = shift.y = 0; return;
+  }
+  camera.setViewOffset(innerWidth, innerHeight, shift.x, shift.y, innerWidth, innerHeight);
+}
+function setCameraFov() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.fov = camera.aspect < 0.8 ? 50 : camera.aspect < 1.2 ? 44 : 38;
+  camera.updateProjectionMatrix();
+}
+
+/* =========================================================
+   5. 이펙트 (동전·지폐·영수증, 떠오르는 글자, 말풍선)
+   ========================================================= */
+const parts = [];
+const CB = { x0: -1.9, x1: 1.4, z0: -0.5, z1: 0.5 }; // 카운터 윗면 범위
+function burstMoney(amount) {
+  const origin = V3(0.55, COUNTER_TOP + 0.18, 0.12);
+  const nCoin = 7 + Math.min(9, Math.floor(amount / 40000)), nBill = 2 + Math.min(5, Math.floor(amount / 90000));
+  const spawn = (geo, mat, half, k) => {
+    const m = new THREE.Mesh(geo, mat); m.castShadow = !COARSE; m.position.copy(origin).add(V3((Math.random() - 0.5) * 0.12, 0, (Math.random() - 0.5) * 0.1));
+    m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3); scene.add(m);
+    parts.push({ m, half, v: V3((Math.random() - 0.5) * 1.6, 2.2 + Math.random() * 1.4, 0.4 + Math.random() * 0.9), w: V3((Math.random() - 0.5) * 14, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 14), age: 0, life: 1.9 + Math.random() * 0.5, k, settled: false });
+  };
+  for (let i = 0; i < nCoin; i++) spawn(coinGeo, goldM, 0.006, 'coin');
+  for (let i = 0; i < nBill; i++) spawn(billGeo, billM, 0.002, 'bill');
+  spawn(receiptGeo, receiptM, 0.001, 'receipt');
+}
+function updateParts(dt) {
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]; p.age += dt;
+    if (!p.settled) {
+      const drag = p.k === 'coin' ? 1 : 0.35; // 지폐·영수증은 팔랑팔랑
+      p.v.y -= 9.8 * drag * dt; p.v.multiplyScalar(p.k === 'coin' ? 1 : 1 - 1.2 * dt);
+      p.m.position.addScaledVector(p.v, dt);
+      p.m.rotation.x += p.w.x * dt; p.m.rotation.y += p.w.y * dt; p.m.rotation.z += p.w.z * dt;
+      const q = p.m.position, onTop = q.x > CB.x0 && q.x < CB.x1 && q.z > CB.z0 && q.z < CB.z1;
+      const gy = (onTop ? COUNTER_TOP : 0) + p.half;
+      if (q.y < gy && p.v.y < 0 && (onTop ? q.y > COUNTER_TOP - 0.15 : true)) {
+        q.y = gy; p.v.y *= -0.32; p.v.x *= 0.55; p.v.z *= 0.55; p.w.multiplyScalar(0.5);
+        if (Math.abs(p.v.y) < 0.35) { p.settled = true; p.m.rotation.x = 0; p.m.rotation.z = 0; }
+      }
+    }
+    if (p.age > p.life) {
+      const s = 1 - (p.age - p.life) / 0.4;
+      if (s <= 0) { scene.remove(p.m); parts.splice(i, 1); continue; }
+      p.m.scale.setScalar(s);
+    }
+  }
+}
+const fx = document.getElementById('fx');
+const floats = [];
+function floatText(text, world, cool) {
+  const el = document.createElement('div'); el.className = 'ftext num' + (cool ? ' cool' : ''); el.textContent = text; fx.appendChild(el);
+  floats.push({ el, p: world.clone(), s: performance.now(), d: 1600 });
+}
+const bubble = document.getElementById('bubble');
+let bubbleUntil = 0;
+function say(html) { bubble.innerHTML = html; bubble.classList.add('show'); bubbleUntil = performance.now() + 4200; }
+let waveT = -1, screenGlow = 0, ringFlash = { pos: 0, fridge: 0, safe: 0 };
+
+/* =========================================================
+   6. 상단 HUD (카운트업)
+   ========================================================= */
+const hudEl = { s: document.getElementById('hSales'), e: document.getElementById('hExp'), n: document.getElementById('hNet') };
+const hudVal = { s: 0, e: 0, n: 0 };
+let hudTween = null;
+function renderHud(animate) {
+  const mo = month(), to = { s: mo.s, e: mo.exp, n: mo.net };
+  const from = Object.assign({}, hudVal);
+  if (!animate || RM) { Object.assign(hudVal, to); paintHud(); return; }
+  ['s', 'e', 'n'].forEach(k => { if (to[k] !== from[k]) { hudEl[k].classList.add('bump'); setTimeout(() => hudEl[k].classList.remove('bump'), 1100); } });
+  hudTween = { from, to, s: performance.now(), d: 1000 };
+}
+function paintHud() {
+  hudEl.s.textContent = won(hudVal.s); hudEl.e.textContent = won(hudVal.e); hudEl.n.textContent = won(hudVal.n);
+  hudEl.n.classList.toggle('pos', hudVal.n > 0); hudEl.n.classList.toggle('neg', hudVal.n < 0);
+}
+function stepHud(now) {
+  if (!hudTween) return;
+  const t = Math.min(1, (now - hudTween.s) / hudTween.d), e = easeOut(t);
+  ['s', 'e', 'n'].forEach(k => { hudVal[k] = hudTween.from[k] + (hudTween.to[k] - hudTween.from[k]) * e; });
+  paintHud(); if (t >= 1) hudTween = null;
+}
+
+/* =========================================================
+   7. 패널
+   ========================================================= */
+const panel = document.getElementById('panel'), pBody = document.getElementById('pBody'), pTag = document.getElementById('pTag'), pTitle = document.getElementById('pTitle');
+let active = null, formOpen = false, saleChannel = '매장', lastNewId = null;
+const CHANNELS = ['매장', '배달', '예약'];
+const QUICK_ING = ['채소', '육류', '빵·유제품', '소스·양념', '음료'];
+
+function renderPanel() {
+  const mo = month();
+  let h = '';
+  if (active === 'pos') {
+    pTag.textContent = '매출 · 포스기'; pTitle.textContent = `${mo.k.m}월 매출`;
+    h += `<div class="cards"><div class="card"><span>매출</span><b class="num">${won(mo.s)}</b></div><div class="card"><span>지출</span><b class="num">${won(mo.exp)}</b></div><div class="card"><span>순익</span><b class="num" style="color:${mo.net >= 0 ? 'var(--green)' : 'var(--red)'}">${won(mo.net)}</b></div></div>`;
+    h += `<div class="sec"><span>최근 매출</span><span>${mo.sales.length}건</span></div><div class="rows">`;
+    const r = recent(mo.sales);
+    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)} ${esc(x.time || '')}</span><span class="chip c-${esc(x.channel)}">${esc(x.channel)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : '<div class="empty">아직 이번 달 매출이 없어요.</div>';
+    h += '</div>';
+    if (!formOpen) h += `<button class="primary" data-act="open-form">+ 매출 입력</button>`;
+    else h += `<div class="form">
+      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 12,000" maxlength="13">
+        <div class="quick"><button data-add="10000">+1만</button><button data-add="50000">+5만</button><button data-add="100000">+10만</button></div></div>
+      <div class="field"><label>채널</label><div class="seg">${CHANNELS.map(c => `<button data-ch="${c}" class="${c === saleChannel ? 'on' : ''}">${c}</button>`).join('')}</div></div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-sale">저장</button></div></div>`;
+  } else if (active === 'fridge') {
+    pTag.textContent = '식자재 · 냉장고'; pTitle.textContent = `${mo.k.m}월 식자재비`;
+    h += `<div class="big"><span>이번 달 식자재비 합계</span><b class="num">${won(mo.i)}</b><em>${mo.ing.length}건 · 냉장고 칸 ${Math.min(mo.ing.length, MAX_ITEMS)}/${MAX_ITEMS}</em></div>`;
+    h += `<div class="sec"><span>최근 식자재</span></div><div class="rows">`;
+    const r = recent(mo.ing);
+    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)}</span><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : '<div class="empty">냉장고가 비었어요. 첫 식자재를 넣어볼까요?</div>';
+    h += '</div>';
+    if (!formOpen) h += `<button class="primary" data-act="open-form">+ 식자재 지출 입력</button>`;
+    else h += `<div class="form">
+      <div class="field"><label for="fName">품목</label><input id="fName" autocomplete="off" placeholder="예: 채소" maxlength="20" style="font-size:16px">
+        <div class="quick">${QUICK_ING.map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
+      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 38,000" maxlength="13"></div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-ing">냉장고에 넣기</button></div></div>`;
+  } else if (active === 'safe') {
+    pTag.textContent = '고정비 · 금고'; pTitle.textContent = `${mo.k.m}월 고정비`;
+    h += `<div class="sec"><span>매달 나가는 돈</span><span>${DATA.fixed.length}개 항목</span></div><div class="rows">`;
+    h += DATA.fixed.map(x => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('');
+    h += `<div class="row total"><div class="l"><span>고정비 합계</span></div><b class="num">${won(mo.f)}</b></div></div>`;
+    h += `<div class="sec" style="margin-top:16px"><span>이번 달 순익 계산</span></div><div class="rows">
+      <div class="row"><div class="l"><span>매출</span></div><b class="num">${won(mo.s)}</b></div>
+      <div class="row minus"><div class="l"><span>− 식자재</span></div><b class="num">${won(mo.i)}</b></div>
+      <div class="row minus"><div class="l"><span>− 고정비</span></div><b class="num">${won(mo.f)}</b></div>
+      <div class="row total net"><div class="l"><span>= 순익</span></div><b class="num ${mo.net >= 0 ? 'pos' : 'neg'}">${won(mo.net)}</b></div></div>
+      <p class="hint">고정비 금액은 샘플이에요. 매출은 포스기, 식자재는 냉장고에서 넣으면 바로 반영돼요.</p>`;
+  }
+  pBody.innerHTML = h;
+  lastNewId = null;
+}
+function openPanel(k) {
+  if (k === 'owner') { ownerTap(); return; }
+  const prev = active;
+  if (prev === k) return;
+  active = k; formOpen = false;
+  if (prev === 'fridge') fridgeOpen(false);
+  if (prev === 'safe') drawerOpen(false);
+  renderPanel();
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); document.body.classList.add('panel-open');
+  pBody.scrollTop = 0;
+  if (k === 'fridge') fridgeOpen(true);
+  if (k === 'safe') drawerOpen(true);
+  if (k === 'pos') ringFlash.pos = 1;
+  requestAnimationFrame(() => updateShiftTarget());
+  const f = OBJ[k].focus; flyTo(focusPos(f), f.t);
+  bubble.classList.remove('show');
+}
+function closePanel() {
+  if (!active) return;
+  if (active === 'fridge') fridgeOpen(false);
+  if (active === 'safe') drawerOpen(false);
+  active = null; formOpen = false;
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); document.body.classList.remove('panel-open');
+  shift.tx = shift.ty = 0;
+  flyTo(homePos(), HOME_T, 1.05);
+}
+function updateShiftTarget() {
+  if (!active) { shift.tx = shift.ty = 0; return; }
+  if (isSheet()) { const hb = document.getElementById('hud').getBoundingClientRect().bottom; shift.tx = 0; shift.ty = Math.round((panel.offsetHeight - hb) / 2); }
+  else { shift.tx = Math.round((360 + 16) / 2); shift.ty = 0; }
+}
+document.getElementById('pClose').addEventListener('click', closePanel);
+window.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+const digits = v => String(v || '').replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+pBody.addEventListener('input', e => {
+  if (e.target.id === 'fAmt') { const d = digits(e.target.value).slice(0, 10); e.target.value = d ? Number(d).toLocaleString('ko-KR') : ''; e.target.classList.remove('err'); }
+  if (e.target.id === 'fName') e.target.classList.remove('err');
+});
+pBody.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.target.id === 'fAmt' || e.target.id === 'fName')) { e.preventDefault(); const b = pBody.querySelector('.save'); b && b.click(); }
+});
+pBody.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'open-form') { formOpen = true; renderPanel(); const first = pBody.querySelector(active === 'fridge' ? '#fName' : '#fAmt'); first && first.focus({ preventScroll: true }); pBody.scrollTop = pBody.scrollHeight; setTimeout(updateShiftTarget, 50); return; }
+  if (act === 'cancel') { formOpen = false; renderPanel(); setTimeout(updateShiftTarget, 50); return; }
+  if (b.dataset.ch) { saleChannel = b.dataset.ch; pBody.querySelectorAll('[data-ch]').forEach(x => x.classList.toggle('on', x === b)); return; }
+  if (b.dataset.add) { const i = pBody.querySelector('#fAmt'); const n = Number(digits(i.value) || 0) + Number(b.dataset.add); i.value = Math.min(n, 9999999999).toLocaleString('ko-KR'); i.classList.remove('err'); return; }
+  if (b.dataset.name) { const i = pBody.querySelector('#fName'); i.value = b.dataset.name; i.classList.remove('err'); const a = pBody.querySelector('#fAmt'); a && a.focus({ preventScroll: true }); return; }
+  if (act === 'save-sale') {
+    const i = pBody.querySelector('#fAmt'), amount = Number(digits(i.value));
+    if (!amount || amount > 100000000) { i.classList.add('err'); i.focus(); return; }
+    const k = kst(), rec = { id: uid(), date: k.date, time: k.time, amount, channel: saleChannel };
+    DATA.sales.push(rec); saveData(DATA); lastNewId = rec.id; formOpen = false;
+    renderPanel(); renderHud(true); refreshPos(); screenGlow = 1; ringFlash.pos = 1;
+    burstMoney(amount); floatText('+' + won(amount), V3(0.4, COUNTER_TOP + 0.55, 0.1));
+    if (navigator.vibrate) try { navigator.vibrate(18); } catch (er) {}
+    setTimeout(updateShiftTarget, 50); return;
+  }
+  if (act === 'save-ing') {
+    const n = pBody.querySelector('#fName'), i = pBody.querySelector('#fAmt');
+    const name = (n.value || '').trim().slice(0, 20), amount = Number(digits(i.value));
+    if (!name) { n.classList.add('err'); n.focus(); return; }
+    if (!amount || amount > 100000000) { i.classList.add('err'); i.focus(); return; }
+    const rec = { id: uid(), date: kst().date, name, amount };
+    DATA.ingredients.push(rec); saveData(DATA); lastNewId = rec.id; formOpen = false;
+    const cnt = month().ing.length;
+    if (cnt <= MAX_ITEMS) { const m = makeItem(cnt - 1, name, true); ringFlash.fridge = 1; floatTextAt(m); }
+    else { fridgeItems.forEach((m, j) => { m.userData.popT = performance.now() + j * 40; }); floatText('−' + won(amount), V3(2.4, 1.6, 0.3), true); }
+    renderPanel(); renderHud(true);
+    if (navigator.vibrate) try { navigator.vibrate(14); } catch (er) {}
+    setTimeout(updateShiftTarget, 50); return;
+    function floatTextAt(m) { const w = new THREE.Vector3(); m.getWorldPosition(w); w.y += 0.25; floatText('−' + won(amount), w, true); }
+  }
+});
+
+/* ---- 냉장고 문 / 금고 서랍 애니메이션 ---- */
+const anim = { door: 0, doorFrom: 0, doorTo: 0, doorS: 0, drawer: 0, drawerFrom: 0, drawerTo: 0, drawerS: 0 };
+let sparkleAt = 0;
+function fridgeOpen(on) {
+  anim.doorFrom = anim.door; anim.doorTo = on ? 1 : 0; anim.doorS = performance.now();
+  if (on) sparkleAt = performance.now() + (RM ? 0 : 380);
+}
+function drawerOpen(on) { anim.drawerFrom = anim.drawer; anim.drawerTo = on ? 1 : 0; anim.drawerS = performance.now(); }
+function stepAnims(now) {
+  // 문: 열 때 0.8초 ease-out(살짝 튕김), 닫을 때 0.6초
+  const dOpen = anim.doorTo > anim.doorFrom, dd = dOpen ? 800 : 600;
+  const td = Math.min(1, (now - anim.doorS) / dd);
+  anim.door = anim.doorFrom + (anim.doorTo - anim.doorFrom) * (dOpen ? easeBack(td) : easeIO(td));
+  const a = 1.75 * anim.door;
+  doorL.rotation.y = -a; doorR.rotation.y = a;
+  const lit = Math.max(0, Math.min(1, anim.door));
+  fridgeLight.intensity = 4.5 * lit; inner.emissiveIntensity = 0.55 * lit;
+  if (sparkleAt && now >= sparkleAt) { fridgeItems.forEach((m, j) => { m.userData.popT = now + j * 55; }); sparkleAt = 0; }
+  const tr = Math.min(1, (now - anim.drawerS) / 650);
+  anim.drawer = anim.drawerFrom + (anim.drawerTo - anim.drawerFrom) * (anim.drawerTo > anim.drawerFrom ? easeBack(tr) : easeIO(tr));
+  drawer.position.z = 0.31 + 0.3 * anim.drawer;
+  // 식자재 반짝/등장
+  fridgeItems.forEach(m => {
+    const u = m.userData; let s = 1, ei = 0;
+    if (u.spawnT > 0) {
+      const t = (now - u.spawnT) / 650;
+      if (t >= 1) { u.spawnT = -1; u.popT = now; }
+      else { const e = Math.max(0, t); s = Math.max(0.001, easeBack(e)); m.position.y = u.baseY + (1 - easeOut(e)) * 0.3; ei = 0.6 * (1 - e); }
+    }
+    if (u.spawnT < 0) {
+      m.position.y = u.baseY;
+      if (u.popT > 0) {
+        const t = (now - u.popT) / 520;
+        if (t >= 0 && t < 1) { s = 1 + 0.2 * Math.sin(Math.PI * t); ei = 0.75 * (1 - t); m.position.y = u.baseY + 0.05 * Math.sin(Math.PI * t); }
+        else if (t >= 1) u.popT = -1;
+      }
+    }
+    m.scale.setScalar(s); m.material.emissiveIntensity = ei;
+  });
+}
+
+/* ---- 사장님 ---- */
+function ownerTap() {
+  const mo = month();
+  const quip = mo.net > 0 ? '이번 달은 흑자예요! 😄' : mo.net < 0 ? '아직 적자… 조금만 더 힘내요! 💪' : '딱 본전이에요!';
+  const todayLine = mo.today > 0 ? `오늘 매출 <b>${won(mo.today)}</b>` : '오늘은 아직 매출이 없어요';
+  say(`${todayLine}<br>이번 달 순익 <b>${won(mo.net)}</b><br>${quip}`);
+  waveT = performance.now();
+  if (!active) { const f = OBJ.owner.focus; flyTo(focusPos(f), f.t, 0.9); ownerReturnAt = performance.now() + 4300; }
+}
+let ownerReturnAt = 0;
+function refreshPos() { const mo = month(); drawPosScreen(mo.today, mo.s); }
+
+/* =========================================================
+   8. 라벨 (3D 좌표 → 화면 좌표)
+   ========================================================= */
+const labelsEl = document.getElementById('labels');
+Object.entries(OBJ).forEach(([k, o]) => {
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'lbl' + (o.small ? ' small' : '');
+  b.innerHTML = `<span class="pill">${o.small ? '' : '<i class="dot"></i>'}${o.label}${o.sub ? ` <small>${o.sub}</small>` : ''}</span>`;
+  b.setAttribute('aria-label', o.label.replace(/^\S+\s/, '') + (o.sub ? ' – ' + o.sub : '') + ' 열기');
+  b.addEventListener('click', e => { e.stopPropagation(); openPanel(k); });
+  b.addEventListener('pointerenter', () => { labelHover = k; });
+  b.addEventListener('pointerleave', () => { if (labelHover === k) labelHover = null; });
+  labelsEl.appendChild(b); o.el = b;
+});
+let labelHover = null;
+const tmpV = new THREE.Vector3();
+function project(world) {
+  tmpV.copy(world).project(camera);
+  return { x: (tmpV.x * 0.5 + 0.5) * innerWidth, y: (-tmpV.y * 0.5 + 0.5) * innerHeight, vis: tmpV.z < 1 && tmpV.z > -1 };
+}
+function updateOverlays(now) {
+  Object.entries(OBJ).forEach(([k, o]) => {
+    const p = project(o.anchor);
+    const hw = (o.el.offsetWidth || 90) / 2 + 4, lx = Math.min(Math.max(p.x, hw), innerWidth - hw);
+    o.el.style.transform = `translate3d(${lx.toFixed(1)}px,${p.y.toFixed(1)}px,0) translate(-50%,calc(-100% - 6px))`;
+    o.el.classList.toggle('off', !p.vis || (active === k));
+    o.el.classList.toggle('dim', !!active && active !== k);
+    o.el.classList.toggle('hot', hover === k || labelHover === k);
+  });
+  for (let i = floats.length - 1; i >= 0; i--) {
+    const f = floats[i], t = (now - f.s) / f.d;
+    if (t >= 1) { f.el.remove(); floats.splice(i, 1); continue; }
+    tmpV.copy(f.p); tmpV.y += easeOut(t) * 0.55;
+    const p = project(tmpV), sc = t < 0.15 ? 0.6 + t / 0.15 * 0.5 : 1.1 - (t - 0.15) * 0.15;
+    f.el.style.transform = `translate3d(${p.x}px,${p.y}px,0) translate(-50%,-50%) scale(${sc})`;
+    f.el.style.opacity = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
+  }
+  if (bubble.classList.contains('show')) {
+    if (now > bubbleUntil) bubble.classList.remove('show');
+    const head = new THREE.Vector3(); headAnchor.getWorldPosition(head);
+    const p = project(head);
+    const bw = (bubble.offsetWidth || 200) / 2 + 6, bx = Math.min(Math.max(p.x, bw), innerWidth - bw);
+    const by = Math.max(p.y, document.getElementById('hud').getBoundingClientRect().bottom + bubble.offsetHeight + 20);
+    bubble.style.transform = `translate3d(${bx}px,${by}px,0) translate(-50%,calc(-100% - 10px))`;
+  }
+}
+const headAnchor = new THREE.Object3D(); headAnchor.position.set(0, 0.42, 0); head.add(headAnchor);
+
+/* =========================================================
+   9. 포인터 (드래그와 클릭 구분, 호버)
+   ========================================================= */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let hover = null, downAt = null;
+function pick(cx, cy) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObjects(PICKABLE, true);
+  for (const h of hits) { let o = h.object; while (o && !o.userData.key) o = o.parent; if (o && o.userData.key) return o.userData.key; }
+  return null;
+}
+const cv = renderer.domElement;
+cv.addEventListener('pointerdown', e => { downAt = { x: e.clientX, y: e.clientY, t: performance.now(), id: e.pointerId }; });
+cv.addEventListener('pointerup', e => {
+  if (!downAt || downAt.id !== e.pointerId) return;
+  const moved = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y), dt = performance.now() - downAt.t; downAt = null;
+  if (moved > 7 || dt > 650) return; // 드래그(회전)로 판단
+  const k = pick(e.clientX, e.clientY);
+  if (k) openPanel(k); else closePanel();
+});
+cv.addEventListener('pointercancel', () => { downAt = null; });
+let hoverXY = null;
+cv.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') hoverXY = { x: e.clientX, y: e.clientY }; });
+cv.addEventListener('pointerleave', () => { hoverXY = null; hover = null; cv.style.cursor = ''; });
+
+document.getElementById('resetView').addEventListener('click', () => {
+  if (active) closePanel(); else flyTo(homePos(), HOME_T, 1.0);
+});
+const sampleBtn = document.getElementById('sampleBtn');
+let sampleArm = 0;
+sampleBtn.addEventListener('click', () => {
+  const now = performance.now();
+  if (now - sampleArm > 3000) { sampleArm = now; sampleBtn.textContent = '한 번 더 누르면 샘플로 되돌려요'; sampleBtn.classList.add('warn');
+    setTimeout(() => { if (performance.now() - sampleArm >= 2900) { sampleBtn.textContent = '↺ 샘플 데이터'; sampleBtn.classList.remove('warn'); } }, 3000); return; }
+  sampleArm = 0; sampleBtn.textContent = '↺ 샘플 데이터'; sampleBtn.classList.remove('warn');
+  DATA = makeSample(); saveData(DATA); syncFridgeItems(); refreshPos(); renderHud(true); if (active) renderPanel();
+});
+
+/* =========================================================
+   10. 크기 변경 · 루프
+   ========================================================= */
+function onResize() {
+  renderer.setSize(innerWidth, innerHeight);
+  setCameraFov();
+  updateShiftTarget();
+  if (!active && !camTween && !userMoved) { camera.position.copy(homePos()); controls.target.copy(HOME_T); }
+}
+let userMoved = false;
+controls.addEventListener('start', () => { userMoved = true; });
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
+
+setCameraFov();
+const hp = homePos();
+if (RM) { camera.position.copy(hp); }
+else { camera.position.copy(HOME_T.clone().addScaledVector(V3(-0.55, 0.75, 1).normalize(), hp.distanceTo(HOME_T) * 1.9)); }
+controls.target.copy(HOME_T); controls.update();
+syncFridgeItems(); refreshPos(); renderHud(false);
+if (!RM) { hudVal.s = hudVal.e = hudVal.n = 0; paintHud(); }
+
+const clock = { last: performance.now(), t: 0 };
+const perf = { n: 0, sum: 0, last: performance.now() };
+let started = false;
+const HL = new THREE.Color(0x62d3e3);
+function frame(now) {
+  const dt = Math.min(0.05, (now - clock.last) / 1000); clock.last = now; clock.t += dt;
+  const T = clock.t;
+
+  if (camTween) {
+    const t = Math.min(1, (now - camTween.s) / camTween.d), e = easeIO(t);
+    camera.position.lerpVectors(camTween.p0, camTween.p1, e); controls.target.lerpVectors(camTween.t0, camTween.t1, e);
+    if (t >= 1) { camTween = null; controls.enabled = true; }
+  }
+  if (ownerReturnAt && now > ownerReturnAt) { ownerReturnAt = 0; if (!active) flyTo(homePos(), HOME_T, 1.0); }
+  controls.update();
+  applyShift();
+
+  if (hoverXY && !COARSE) {
+    const k = pick(hoverXY.x, hoverXY.y);
+    if (k !== hover) { hover = k; cv.style.cursor = k ? 'pointer' : ''; }
+  }
+
+  // 하이라이트 (emissive + 바닥 링)
+  Object.entries(OBJ).forEach(([k, o]) => {
+    const target = (hover === k || labelHover === k || active === k) ? 1 : 0;
+    o.h += (target - o.h) * Math.min(1, dt * 10);
+    o.mats.forEach(m => { if (m === screenMat) return; m.emissive.copy(m.userData.baseEm).lerp(HL, o.h * 0.1); m.emissiveIntensity = Math.max(m.userData.baseEI, o.h * 0.45); });
+    if (o.ring) {
+      const f = ringFlash[k] || 0;
+      o.ring.material.opacity = 0.05 + o.h * 0.5 + f * 0.5 + (RM ? 0 : Math.sin(T * 2.4 + k.length) * 0.03);
+      const s = 1 + f * 0.25; o.ring.scale.set(s, s, 1);
+      if (ringFlash[k]) ringFlash[k] = Math.max(0, f - dt * 1.4);
+    }
+  });
+
+  // 포스기 화면 발광
+  screenGlow = Math.max(0, screenGlow - dt * 0.9);
+  screenMat.emissiveIntensity = 0.9 + screenGlow * 2.2 + OBJ.pos.h * 0.25;
+
+  // 사장님: 호흡 + 손 흔들기
+  if (!RM) { body.position.y = Math.sin(T * 2.1) * 0.012; body.scale.y = 1 + Math.sin(T * 2.1) * 0.006; head.rotation.y = Math.sin(T * 0.6) * 0.12; }
+  if (waveT > 0) {
+    const t = (now - waveT) / 1700;
+    if (t >= 1) { waveT = -1; armR.rotation.z = 0.16; armR.rotation.x = -0.25; owner.position.y = 0; head.rotation.z = 0; }
+    else {
+      const up = t < 0.15 ? easeOut(t / 0.15) : t > 0.85 ? 1 - easeIO((t - 0.85) / 0.15) : 1;
+      armR.rotation.z = 0.16 + up * (2.45 + Math.sin(t * 30) * 0.35); armR.rotation.x = -0.25 * (1 - up);
+      owner.position.y = Math.abs(Math.sin(t * Math.PI * 2)) * 0.06 * (1 - t);
+      head.rotation.z = Math.sin(t * 18) * 0.08 * up;
+    }
+  }
+
+  // 느린 기기면 해상도를 한 단계 낮춰 프레임 유지
+  if (perf.n < 90 && started) { perf.sum += now - perf.last; perf.n++; if (perf.n === 90 && perf.sum / 90 > 22 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight); } }
+  perf.last = now;
+  stepAnims(now);
+  updateParts(dt);
+  stepHud(now);
+  renderer.render(scene, camera);
+  updateOverlays(now);
+
+  if (!started) {
+    started = true;
+    document.getElementById('loader').classList.add('hide'); stage.classList.add('ready');
+    setTimeout(() => { document.getElementById('loader').hidden = true; }, 700);
+    if (!RM) { flyTo(hp, HOME_T, 1.8); setTimeout(() => renderHud(true), 500); }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
