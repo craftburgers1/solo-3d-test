@@ -96,7 +96,7 @@ body.panel-open #xh,body.moving #xh{opacity:0}
 body.panel-open #hint{opacity:0}
 
 /* 패널 */
-#panel{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 80px);right:16px;bottom:16px;width:360px;border-radius:24px;display:flex;flex-direction:column;background:rgba(255,250,243,.95);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);box-shadow:0 18px 50px rgba(110,70,40,.22);
+#panel{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 118px);right:16px;bottom:16px;width:360px;border-radius:24px;display:flex;flex-direction:column;background:rgba(255,250,243,.95);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.8);box-shadow:0 18px 50px rgba(110,70,40,.22);
   transform:translateX(calc(100% + 30px));opacity:0;transition:transform .45s cubic-bezier(.2,.9,.25,1.05),opacity .3s}
 #panel.open{transform:none;opacity:1}
 .grab{display:none}
@@ -159,6 +159,45 @@ body.panel-open #hint{opacity:0}
 button,.tg,#hud,#bar{touch-action:manipulation}
 .pbody{overscroll-behavior:contain}
 body{-webkit-touch-callout:none}
+/* 업종 스위처 + 전환 커튼 */
+.hudbar{grid-column:2;grid-row:1}
+.mark{grid-column:1;grid-row:1}
+.modes{grid-column:2;grid-row:2;justify-self:center;display:flex;gap:3px;padding:4px;border-radius:15px}
+.modes button{height:30px;padding:0 13px;border-radius:11px;font-size:12.5px;font-weight:800;color:var(--muted);white-space:nowrap;transition:background .2s,color .2s}
+.modes button.on{background:var(--butter);color:var(--ink);box-shadow:inset 0 -2px 0 rgba(160,110,30,.18)}
+#curtain{position:fixed;inset:0;z-index:45;display:flex;align-items:center;justify-content:center;background:rgba(255,248,239,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .28s ease}
+#curtain.show{opacity:1;pointer-events:auto}
+#curtain .cv{display:flex;flex-direction:column;align-items:center;gap:8px;transform:scale(.85);transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+#curtain.show .cv{transform:none}
+#curtain .cv span{font-size:54px}
+#curtain .cv b{font-size:14px;color:var(--ink)}
+/* 가계 정산표 막대 */
+.cat{padding:9px 0;border-bottom:1px dashed var(--line)}
+.cat:last-child{border-bottom:0}
+.cat .ct{display:flex;justify-content:space-between;gap:8px;font-size:13.5px;margin-bottom:5px}
+.cat .ct span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cat .ct b{white-space:nowrap;font-weight:700}
+.cat .ct small{font-size:11px;color:var(--muted);font-weight:700}
+.cat .bar{height:9px;border-radius:9px;background:#f4ece1;overflow:hidden}
+.cat .bar i{display:block;height:100%;border-radius:9px}
+/* 근태 */
+.att{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:11px 0;border-bottom:1px dashed var(--line)}
+.att:last-child{border-bottom:0}
+.att .who{display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap}
+.att .who b{font-size:15px}
+.att .tm{grid-column:1;font-size:12px}
+.att .clk{grid-row:1/3;grid-column:2;height:40px;padding:0 13px;border-radius:12px;background:var(--mint);color:#fff;font-size:13px;font-weight:800;box-shadow:inset 0 -3px 0 rgba(20,80,60,.2);white-space:nowrap}
+.att .clk.out{background:#f7efe4;color:var(--ink);box-shadow:none}
+.att.new{animation:rowin .9s ease}
+.pay{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.pay .l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pay .l .d{font-size:11.5px}
+.pay>b{font-weight:800;white-space:nowrap}
+.d{color:var(--muted)}
+.fam{gap:8px}
+.fam .ck{font-size:18px;width:30px;height:30px;flex:none}
+.fam .l{flex:1}
+.fam.done .l span{text-decoration:line-through;color:var(--muted)}
 /* 복식장부 */
 .mode{display:flex;gap:4px;padding:4px;border-radius:14px;background:#f7efe4;margin:2px 0 12px}
 .mode button{flex:1;height:36px;border-radius:11px;font-size:13px;font-weight:800;color:var(--muted)}
@@ -218,6 +257,9 @@ body{-webkit-touch-callout:none}
   .stat b{font-size:13.5px}
   .homebtn{height:34px;padding:0 10px;font-size:15px}
   .homebtn em{display:none}
+  .mark,.hudbar,.modes{grid-column:1;grid-row:auto}
+  .modes{justify-self:stretch;padding:3px}
+  .modes button{flex:1;min-width:0;padding:0 4px;font-size:12px;height:30px}
   #bar{left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);justify-content:center}
   .quick{padding:5px;gap:4px}
   .quick button{height:36px;padding:0 10px;font-size:12.5px}
@@ -250,12 +292,16 @@ body{-webkit-touch-callout:none}
 <header id="hud">
   <div class="mark"><i></i>솔로운영 3D</div>
   <div class="hudbar glass" role="group" aria-label="이번 달 요약">
-    <div class="stat"><span>총매출</span><b id="hSales" class="num">₩0</b></div>
-    <div class="stat"><span>지출</span><b id="hExp" class="num">₩0</b></div>
-    <div class="stat"><span>순익</span><b id="hNet" class="num">₩0</b></div>
+    <div class="stat"><span id="hL0">총매출</span><b id="hSales" class="num">₩0</b></div>
+    <div class="stat"><span id="hL1">지출</span><b id="hExp" class="num">₩0</b></div>
+    <div class="stat"><span id="hL2">순익</span><b id="hNet" class="num">₩0</b></div>
     <button id="homeBtn" class="homebtn" type="button" aria-label="내 자리로" title="내 자리로">🔄<em>내 자리로</em></button>
   </div>
+  <div class="modes glass" role="tablist" aria-label="업종 선택">
+    <button type="button" role="tab" data-m="restaurant">🍔 식당·카페</button><button type="button" role="tab" data-m="salon">✂️ 미용실</button><button type="button" role="tab" data-m="home">🏠 주부·가정</button>
+  </div>
 </header>
+<div id="curtain" aria-hidden="true"><div class="cv"><span id="cvIcon">🍔</span><b id="cvText"></b></div></div>
 
 <div id="tags"></div>
 <div id="fx"><div id="catBubble" role="status" aria-live="polite"></div></div>
@@ -305,9 +351,8 @@ if (!window.__solo3dNoGL) {
 window.__solo3dStarted = true;
 
 /* =========================================================
-   1. 데이터 (localStorage: solo3d_v1)
+   1. 업종 설정 + 데이터 (localStorage: 방마다 따로)
    ========================================================= */
-const KEY = 'solo3d_v1';
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const COARSE = window.matchMedia('(pointer: coarse)').matches;
 function kst(d = new Date()) {
@@ -318,42 +363,131 @@ function kst(d = new Date()) {
   return { y: +o.year, m: +o.month, d: +o.day, ym: `${o.year}-${o.month}`, date: `${o.year}-${o.month}-${o.day}`, time: `${o.hour}:${o.minute}` };
 }
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-function makeSample() {
+const MODE_KEY = 'solo3d_mode', OLD_KEY = 'solo3d_v1';
+const dkey = m => 'solo3d_v1_' + m;
+
+// 업종별 문구·계정·라벨 (3D 라벨, 패널, 장부 이름이 모두 여기서 바뀜)
+const MODES = {
+  restaurant: {
+    icon: '🍔', label: '식당·카페', short: '식당', face: '🧑‍🍳', boss: '사장님',
+    hud: ['총매출', '지출', '순익'], inc: '매출', incAcc: '매출', varW: '식자재', varAcc: '식자재비', varTotal: '식자재비', fixW: '고정비', netW: '순익',
+    channels: ['매장', '배달', '예약'], quickVar: ['채소', '육류', '빵·유제품', '소스·양념', '음료'],
+    views: ['포스 앞', '냉장고 앞'], screen: '오늘 매출', ledger: true,
+    obj: {
+      pos: ['🖥️', '포스기', '탭해서 열기', '포스'], fridge: ['🧊', '냉장고', '탭해서 열기', '냉장고'], safe: ['💰', '금고', '탭해서 열기', '금고'],
+      ledger: ['📚', '세무회계 장부', '탭해서 복식장부 열기', '장부'], cat: ['🐱', '점장 고양이', '쓰다듬기', '고양이'],
+      owner: ['🙋', '사장님', '말 걸기', '사장님'], staff: ['🧑‍🍳', '직원', '근태·급여 보기', '직원']
+    }
+  },
+  salon: {
+    icon: '✂️', label: '미용실', short: '미용실', face: '💇', boss: '원장님',
+    hud: ['시술매출', '지출', '순익'], inc: '시술매출', incAcc: '시술매출', varW: '재료비', varAcc: '재료비', varTotal: '재료비', fixW: '고정비', netW: '순익',
+    channels: ['커트', '펌', '염색', '클리닉'], quickVar: ['염색약', '샴푸', '트리트먼트', '펌약', '소모품'],
+    views: ['포스 앞', '재료장 앞'], screen: '오늘 시술매출', ledger: true,
+    obj: {
+      pos: ['💇', '시술 포스', '탭해서 열기', '포스'], fridge: ['🧴', '재료 선반', '탭해서 열기', '재료'], safe: ['💰', '금고', '탭해서 열기', '금고'],
+      ledger: ['📚', '세무 장부', '탭해서 복식장부 열기', '장부'], cat: ['🎀', '리본 고양이', '쓰다듬기', '고양이'],
+      owner: ['🙋', '원장님', '말 걸기', '원장님'], staff: ['💁', '스태프', '근태·급여 보기', '스태프']
+    }
+  },
+  home: {
+    icon: '🏠', label: '주부·가정', short: '가정', face: '🏠', boss: '우리집',
+    hud: ['수입', '지출', '남은 돈'], inc: '수입', incAcc: '수입', varW: '장보기·식비', varAcc: '식비', varTotal: '식비', fixW: '고정 지출', netW: '남은 돈',
+    channels: ['월급', '용돈', '부수입'], quickVar: ['마트', '시장', '온라인 장보기', '과일', '간식'],
+    views: ['노트북 앞', '냉장고 앞'], screen: '이번 달 남은 돈', ledger: false,
+    obj: {
+      pos: ['💻', '가계부 노트', '탭해서 열기', '가계부'], fridge: ['🧊', '냉장고', '탭해서 장보기 기록', '냉장고'], safe: ['🗄️', '서랍장', '고정 지출 보기', '서랍장'],
+      ledger: ['📚', '가계부 책장', '탭해서 정산표 열기', '정산표'], cat: ['🐱', '소파 고양이', '쓰다듬기', '고양이'],
+      owner: ['🙋', '우리집', '말 걸기', '우리집'], staff: ['🗓️', '가족 일정 보드', '일정·알림 보기', '일정']
+    }
+  }
+};
+let MODE = (() => { try { const m = localStorage.getItem(MODE_KEY); return MODES[m] ? m : 'restaurant'; } catch (e) { return 'restaurant'; } })();
+const MC = () => MODES[MODE];
+
+function makeSample(mode = MODE) {
   const k = kst(), day = n => `${k.ym}-${String(Math.max(1, k.d - n)).padStart(2, '0')}`;
-  return {
-    v: 1,
-    sales: [[6, '11:40', 412000, '매장'], [5, '19:20', 186500, '배달'], [4, '12:10', 240000, '예약'], [3, '20:30', 468000, '매장'], [2, '18:50', 351500, '배달'], [1, '13:05', 584000, '매장']]
-      .map(([n, time, amount, channel]) => ({ id: uid(), date: day(n), time, amount, channel })),
-    ingredients: [[6, '채소', 38000], [5, '육류', 120000], [4, '빵·유제품', 64000], [2, '소스·양념', 32000], [1, '음료', 45000]]
-      .map(([n, name, amount]) => ({ id: uid(), date: day(n), name, amount })),
-    fixed: [{ name: '임차료', amount: 1200000 }, { name: '공과금(전기·수도)', amount: 180000 }, { name: '통신비', amount: 55000 }, { name: '세금과공과', amount: 90000 }],
-    personal: samplePersonal(day),
-    opening: 2000000
+  const rec = (rows, f) => rows.map(f);
+  const S_ = {
+    restaurant: {
+      sales: [[6, '11:40', 412000, '매장'], [5, '19:20', 186500, '배달'], [4, '12:10', 240000, '예약'], [3, '20:30', 468000, '매장'], [2, '18:50', 351500, '배달'], [1, '13:05', 584000, '매장']],
+      ing: [[6, '채소', 38000], [5, '육류', 120000], [4, '빵·유제품', 64000], [2, '소스·양념', 32000], [1, '음료', 45000]],
+      fixed: [['임차료', 1200000], ['공과금(전기·수도)', 180000], ['통신비', 55000], ['세금과공과', 90000]],
+      personal: [[5, '편의점', 8400], [3, '주유', 62000], [2, '생활용품', 23500]],
+      staff: [['민지', '홀', 10320], ['준호', '주방', 10800]]
+    },
+    salon: {
+      sales: [[6, '11:20', 380000, '커트'], [5, '14:00', 520000, '펌'], [4, '16:30', 460000, '염색'], [3, '12:40', 410000, '커트'], [2, '15:10', 590000, '염색'], [1, '17:00', 330000, '클리닉']],
+      ing: [[6, '염색약', 96000], [4, '샴푸', 54000], [3, '펌약', 72000], [1, '트리트먼트', 48000]],
+      fixed: [['월세', 1500000], ['전기·수도', 160000], ['통신비', 50000], ['부가세', 300000]],
+      personal: [[5, '편의점', 8400], [3, '주유', 62000], [1, '카페', 5800]],
+      staff: [['수아', '디자이너 보조', 11000], ['하린', '인턴', 10320]]
+    },
+    home: {
+      sales: [[8, '09:00', 3200000, '월급'], [5, '20:10', 150000, '부수입'], [2, '18:30', 100000, '용돈']],
+      ing: [[7, '마트', 128000], [5, '시장', 46000], [4, '온라인 장보기', 89000], [2, '과일', 32000], [1, '간식', 18500]],
+      fixed: [['관리비', 250000], ['공과금', 120000], ['교육비', 400000], ['통신비', 90000], ['보험', 210000]],
+      personal: [[6, '생활용품', 42000], [4, '교통', 55000], [3, '병원', 23000], [1, '외식', 64000]],
+      staff: []
+    }
+  }[mode];
+  const d = {
+    v: 2, mode,
+    sales: rec(S_.sales, ([n, time, amount, channel]) => ({ id: uid(), date: day(n), time, amount, channel })),
+    ingredients: rec(S_.ing, ([n, name, amount]) => ({ id: uid(), date: day(n), name, amount })),
+    fixed: S_.fixed.map(([name, amount]) => ({ name, amount })),
+    personal: rec(S_.personal, ([n, name, amount]) => ({ id: uid(), date: day(n), name, amount })),
+    opening: mode === 'home' ? 0 : 2000000,
+    staff: S_.staff.map(([name, role, wage], i) => ({ id: 's' + i, name, role, wage })),
+    att: [], family: []
   };
+  // 근태 샘플: 이번 달 지난 날짜 + 오늘
+  if (d.staff.length) {
+    const nowMin = toMin(k.time);
+    for (let dd = 1; dd < k.d; dd++) {
+      const date = `${k.ym}-${String(dd).padStart(2, '0')}`;
+      if (dd % 2 === 0) d.att.push({ id: uid(), sid: 's0', date, in: '10:00', out: '16:00' });
+      if (dd % 3 !== 0) d.att.push({ id: uid(), sid: 's1', date, in: '17:00', out: '22:00' });
+    }
+    if (nowMin >= 10 * 60) d.att.push({ id: uid(), sid: 's0', date: k.date, in: '10:00', out: nowMin >= 16 * 60 ? '16:00' : null });
+  } else {
+    d.family = [['아이 학원 픽업', '오늘 16:30'], ['관리비 납부', '매달 25일'], ['보험료 자동이체', '매달 27일'], ['가족 외식', '이번 주 토요일'], ['분리수거', '매주 수요일']]
+      .map(([text, when], i) => ({ id: uid(), text, when, done: i === 4 }));
+  }
+  return d;
 }
-function samplePersonal(day) {
-  return [[5, '편의점', 8400], [3, '주유', 62000], [2, '생활용품', 23500]].map(([n, name, amount]) => ({ id: uid(), date: day(n), name, amount }));
-}
-function saveData(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
-function loadData() {
+function toMin(t) { const [h, m] = String(t || '0:0').split(':').map(Number); return (h || 0) * 60 + (m || 0); }
+function saveData(d = DATA) { try { localStorage.setItem(dkey(MODE), JSON.stringify(d)); } catch (e) {} }
+function loadData(mode = MODE) {
   try {
-    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    let raw = localStorage.getItem(dkey(mode));
+    if (!raw && mode === 'restaurant') raw = localStorage.getItem(OLD_KEY); // 이전 버전(식당) 데이터 이어 쓰기
+    const d = JSON.parse(raw || 'null');
     if (d && Array.isArray(d.sales) && Array.isArray(d.ingredients) && Array.isArray(d.fixed)) {
-      // 이전 버전 데이터: 개인 지출·월초 시재 샘플만 덧붙임(기존 기록은 그대로)
-      if (!Array.isArray(d.personal)) { const k = kst(); d.personal = samplePersonal(n => `${k.ym}-${String(Math.max(1, k.d - n)).padStart(2, '0')}`); }
-      if (typeof d.opening !== 'number') d.opening = 2000000;
-      saveData(d); return d;
+      const s = makeSample(mode);
+      if (!Array.isArray(d.personal)) d.personal = s.personal;
+      if (typeof d.opening !== 'number') d.opening = s.opening;
+      if (!Array.isArray(d.staff)) { d.staff = s.staff; d.att = s.att; }
+      if (!Array.isArray(d.att)) d.att = [];
+      if (!Array.isArray(d.family)) d.family = s.family;
+      localStorage.setItem(dkey(mode), JSON.stringify(d));
+      return d;
     }
   } catch (e) {}
-  const s = makeSample(); saveData(s); return s;
+  const s = makeSample(mode);
+  try { localStorage.setItem(dkey(mode), JSON.stringify(s)); } catch (e) {}
+  return s;
 }
 let DATA = loadData();
 const sum = a => a.reduce((s, x) => s + (Number(x.amount) || 0), 0);
 function month() {
-  const k = kst();
-  const sales = DATA.sales.filter(x => String(x.date).startsWith(k.ym)), ing = DATA.ingredients.filter(x => String(x.date).startsWith(k.ym));
-  const s = sum(sales), i = sum(ing), f = sum(DATA.fixed);
-  return { k, sales, ing, s, i, f, exp: i + f, net: s - i - f, today: sum(DATA.sales.filter(x => x.date === k.date)) };
+  const k = kst(), ym = k.ym;
+  const sales = DATA.sales.filter(x => String(x.date).startsWith(ym)), ing = DATA.ingredients.filter(x => String(x.date).startsWith(ym));
+  const pers = (DATA.personal || []).filter(x => String(x.date).startsWith(ym));
+  const s = sum(sales), i = sum(ing), f = sum(DATA.fixed), p = sum(pers);
+  const home = MODE === 'home';
+  const exp = i + f + (home ? p : 0); // 가정: 생활비까지 지출 / 사업: 개인 지출은 순익에서 제외
+  return { k, sales, ing, pers, s, i, f, p, exp, net: s - exp, today: sum(DATA.sales.filter(x => x.date === k.date)) };
 }
 /* ---- 복식장부: 자동 분개 + 시산표 ---- */
 function fixedAcc(name) {
@@ -361,31 +495,48 @@ function fixedAcc(name) {
   if (/임차|월세|임대/.test(n)) return '임차료';
   if (/공과금|전기|수도|가스|광열/.test(n)) return '수도광열비';
   if (/통신|인터넷|전화/.test(n)) return '통신비';
-  if (/세금|공과/.test(n)) return '세금과공과';
+  if (/세금|공과|부가세|부가가치/.test(n)) return '세금과공과';
   if (/인건|급여|알바|직원/.test(n)) return '인건비';
   return '기타경비';
 }
 function journal(all) {
-  const mo = month(), ym = mo.k.ym, E = [];
+  const mo = month(), ym = mo.k.ym, E = [], c = MC();
   E.push({ id: 'open', date: ym + '-01', t: '00:00', memo: '월초 시재 (기초 현금)', dr: '현금', cr: '자본금', amt: Number(DATA.opening) || 0 });
   DATA.fixed.forEach((f, i) => E.push({ id: 'fx' + i, date: ym + '-01', t: '00:0' + (i + 1), memo: f.name + ' · 월 고정비', dr: fixedAcc(f.name), cr: '현금', amt: Number(f.amount) || 0 }));
-  mo.sales.forEach(x => E.push({ id: x.id, date: x.date, t: x.time || '', memo: '매출 · ' + x.channel, dr: '현금', cr: '매출', amt: x.amount }));
-  mo.ing.forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: '식자재 · ' + x.name, dr: '식자재비', cr: '현금', amt: x.amount }));
-  if (all) (DATA.personal || []).filter(x => String(x.date).startsWith(ym)).forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: '개인 · ' + x.name, dr: '개인인출', cr: '현금', amt: x.amount, personal: true }));
+  mo.sales.forEach(x => E.push({ id: x.id, date: x.date, t: x.time || '', memo: c.inc + ' · ' + x.channel, dr: '현금', cr: c.incAcc, amt: x.amount }));
+  mo.ing.forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: c.varW + ' · ' + x.name, dr: c.varAcc, cr: '현금', amt: x.amount }));
+  if (all) mo.pers.forEach(x => E.push({ id: x.id, date: x.date, t: '', memo: '개인 · ' + x.name, dr: '개인인출', cr: '현금', amt: x.amount, personal: true }));
   return E.filter(e => e.amt > 0);
 }
-const ACC_ORDER = ['현금', '매출', '식자재비', '임차료', '수도광열비', '통신비', '세금과공과', '인건비', '기타경비', '개인인출', '자본금'];
-const CREDIT_ACC = new Set(['매출', '자본금']);
+const accOrder = () => ['현금', MC().incAcc, MC().varAcc, '임차료', '수도광열비', '통신비', '세금과공과', '인건비', '기타경비', '개인인출', '자본금'];
+const isCredit = a => a === '자본금' || a === MC().incAcc;
 function trialBalance(E, all) {
-  const m = new Map(ACC_ORDER.filter(a => all || a !== '개인인출').filter(a => a !== '기타경비').map(a => [a, { dr: 0, cr: 0 }]));
+  const m = new Map(accOrder().filter(a => all || a !== '개인인출').filter(a => a !== '기타경비').map(a => [a, { dr: 0, cr: 0 }]));
   E.forEach(e => { if (!m.has(e.dr)) m.set(e.dr, { dr: 0, cr: 0 }); if (!m.has(e.cr)) m.set(e.cr, { dr: 0, cr: 0 }); m.get(e.dr).dr += e.amt; m.get(e.cr).cr += e.amt; });
-  const rows = [...m.entries()].map(([acc, v]) => ({ acc, dr: v.dr, cr: v.cr, bal: CREDIT_ACC.has(acc) ? v.cr - v.dr : v.dr - v.cr, side: CREDIT_ACC.has(acc) ? '대' : '차' }));
+  const rows = [...m.entries()].map(([acc, v]) => ({ acc, dr: v.dr, cr: v.cr, bal: isCredit(acc) ? v.cr - v.dr : v.dr - v.cr, side: isCredit(acc) ? '대' : '차' }));
   return { rows, drT: rows.reduce((s, r) => s + r.dr, 0), crT: rows.reduce((s, r) => s + r.cr, 0) };
+}
+/* ---- 근태: 근무시간·예상 급여 ---- */
+function shiftMin(r, nowK) {
+  if (!r.in) return 0;
+  const end = r.out ? toMin(r.out) : (r.date === nowK.date ? toMin(nowK.time) : toMin(r.in));
+  let m = end - toMin(r.in); if (m < 0) m += 24 * 60; return m;
+}
+function staffSummary() {
+  const k = kst();
+  return (DATA.staff || []).map(st => {
+    const recs = (DATA.att || []).filter(a => a.sid === st.id && String(a.date).startsWith(k.ym));
+    const today = recs.filter(a => a.date === k.date);
+    const last = today[today.length - 1];
+    const mins = recs.reduce((s, r) => s + shiftMin(r, k), 0);
+    return { st, today, last, working: !!(last && !last.out), mins, days: new Set(recs.map(r => r.date)).size, pay: Math.round(mins / 60 * st.wage) };
+  });
 }
 const won = n => (n < 0 ? '-' : '') + '₩' + Math.abs(Math.round(n)).toLocaleString('ko-KR');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const md = d => { const p = String(d).split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}` : ''; };
 const recent = a => a.slice().sort((x, y) => (y.date + (y.time || '') + y.id).localeCompare(x.date + (x.time || '') + x.id)).slice(0, 5);
+const hm = m => `${Math.floor(m / 60)}시간${m % 60 ? ' ' + (m % 60) + '분' : ''}`;
 
 /* =========================================================
    2. 렌더러 · 장면
@@ -420,6 +571,9 @@ const CYL = (rt, rb, h, seg = 20) => { const k = ['c', rt, rb, h, seg].join(); i
 const SPH = (r, w = 16, h = 12) => { const k = ['s', r, w, h].join(); if (!geoCache.has(k)) geoCache.set(k, new THREE.SphereGeometry(r, w, h)); return geoCache.get(k); };
 const S = (color, rough = 0.7, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: rough, metalness: 0, envMapIntensity: 0.4 }, o));
 const P = (color, rough = 0.45, o = {}) => new THREE.MeshPhysicalMaterial(Object.assign({ color, roughness: rough, metalness: 0, clearcoat: 0.6, clearcoatRoughness: 0.35, envMapIntensity: 0.5 }, o));
+// 업종 테마: 재질 색을 방마다 바꿈 [식당, 미용실, 가정]
+const THEMED = [];
+const TM = (mat, r, sa, ho) => { THEMED.push([mat, { restaurant: r, salon: sa, home: ho }]); return mat; };
 function add(parent, geo, mat, x = 0, y = 0, z = 0, cast = true, recv = true) {
   const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = recv; parent.add(m); return m;
 }
@@ -471,9 +625,9 @@ const mintL = new THREE.PointLight(0x9fe3cf, 2.6, 5, 1.5); mintL.position.set(1.
    3. 매장 (방 · 창밖 · 손님석)
    ========================================================= */
 const ROOM = { x0: -3.6, x1: 2.4, z0: -4.6, z1: 2.4, h: 2.9 };
-const floor = add(scene, new THREE.PlaneGeometry(ROOM.x1 - ROOM.x0, ROOM.z1 - ROOM.z0), S(0xffffff, 0.62, { map: floorTex, envMapIntensity: 0.3 }), (ROOM.x0 + ROOM.x1) / 2, 0, (ROOM.z0 + ROOM.z1) / 2, false);
+const floor = add(scene, new THREE.PlaneGeometry(ROOM.x1 - ROOM.x0, ROOM.z1 - ROOM.z0), TM(S(0xffffff, 0.62, { map: floorTex, envMapIntensity: 0.3 }), 0xffffff, 0xf7dde4, 0xfff2e0), (ROOM.x0 + ROOM.x1) / 2, 0, (ROOM.z0 + ROOM.z1) / 2, false);
 floor.rotation.x = -Math.PI / 2;
-const wallM = S(0xfbefe0, 0.9), wallL = S(0xfbe2d2, 0.9), wallR = S(0xfdf1d2, 0.9), wainM = S(0xc7e8da, 0.75), wainC = S(0xffd9c4, 0.75);
+const wallM = TM(S(0xfbefe0, 0.9), 0xfbefe0, 0xfce6ee, 0xf8f4ea), wallL = TM(S(0xfbe2d2, 0.9), 0xfbe2d2, 0xf2e6fa, 0xf1efe4), wallR = TM(S(0xfdf1d2, 0.9), 0xfdf1d2, 0xfdeef4, 0xf6f1e3), wainM = TM(S(0xc7e8da, 0.75), 0xc7e8da, 0xe0d0f5, 0xcfdcc4), wainC = TM(S(0xffd9c4, 0.75), 0xffd9c4, 0xf9cfe0, 0xe8dcc6);
 function wall(w, h, x, y, z, ry, mat) { const m = add(scene, new THREE.PlaneGeometry(w, h), mat, x, y, z, false); m.rotation.y = ry; return m; }
 // 앞벽(창문 구멍)
 const WIN = { x0: -2.3, x1: 1.3, y0: 0.85, y1: 2.3 };
@@ -536,8 +690,8 @@ const winPos = [];
 
 // 왼쪽 벽: 메뉴판(그림만) + 선반
 const board = new THREE.Group(); board.position.set(ROOM.x0 + 0.03, 1.65, -2.2); board.rotation.y = Math.PI / 2; scene.add(board);
-add(board, RB(1.3, 0.8, 0.04, 0.05), S(0xd8b48a, 0.6), 0, 0, 0, false);
-add(board, RB(1.18, 0.68, 0.02, 0.04), S(0x4f7a68, 0.85), 0, 0, 0.02, false);
+add(board, RB(1.3, 0.8, 0.04, 0.05), TM(S(0xd8b48a, 0.6), 0xd8b48a, 0xe2c27e, 0xc9a57c), 0, 0, 0, false);
+add(board, RB(1.18, 0.68, 0.02, 0.04), TM(S(0x4f7a68, 0.85), 0x4f7a68, 0xb79ad6, 0xe3c9a0), 0, 0, 0.02, false);
 [[-0.3, 0.2, 0xffe6a3], [-0.3, 0.02, 0xfbe2d2], [-0.3, -0.16, 0xffe6a3], [0.28, 0.2, 0xffc9a3], [0.28, 0.02, 0xfbe2d2], [0.28, -0.16, 0xc7e8da]].forEach(([x, y, c]) => add(board, RB(0.42, 0.05, 0.005, 0.02), S(c, 0.9), x, y, 0.032, false));
 const shelfL = new THREE.Group(); shelfL.position.set(ROOM.x0 + 0.14, 1.25, -0.6); shelfL.rotation.y = Math.PI / 2; scene.add(shelfL);
 add(shelfL, RB(1.0, 0.04, 0.22, 0.015), S(0xe2b886, 0.6, { map: woodTop }), 0, 0, 0);
@@ -556,7 +710,8 @@ add(clock, new THREE.TorusGeometry(0.22, 0.025, 10, 40), S(0xef8a74, 0.5), 0, 0,
 const hourH = add(clock, RB(0.02, 0.11, 0.01, 0.005), S(0x4a3b30), 0, 0.045, 0.03, false);
 const minH = add(clock, RB(0.014, 0.16, 0.01, 0.005), S(0x4a3b30), 0, 0.07, 0.035, false);
 
-// 손님 테이블 + 의자
+// 손님 테이블 + 의자 (식당 전용 그룹)
+const grpRest = new THREE.Group(); scene.add(grpRest);
 function chair(parent, x, z, ry, c) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; parent.add(g);
   const m = P(c, 0.5), leg = S(0xd8b48a, 0.6);
@@ -565,17 +720,70 @@ function chair(parent, x, z, ry, c) {
   [[-0.15, -0.15], [0.15, -0.15], [-0.15, 0.15], [0.15, 0.15]].forEach(([a, b]) => add(g, CYL(0.018, 0.015, 0.44, 8), leg, a, 0.22, b));
 }
 function table(x, z, ca, cb) {
-  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  const g = new THREE.Group(); g.position.set(x, 0, z); grpRest.add(g);
   add(g, CYL(0.45, 0.45, 0.05, 36), S(0xe8c39a, 0.55, { map: woodTop }), 0, 0.74, 0);
   add(g, CYL(0.04, 0.04, 0.7, 12), S(0xf6f0e6, 0.5), 0, 0.37, 0);
   add(g, CYL(0.22, 0.25, 0.03, 24), S(0xf6f0e6, 0.5), 0, 0.015, 0);
   add(g, CYL(0.035, 0.03, 0.1, 14), P(0xffffff, 0.2), 0, 0.82, 0);
   add(g, SPH(0.04, 10, 8), S(cb === 0xbfe3d5 ? 0xf7a7b6 : 0xffd56b, 0.6), 0, 0.9, 0);
   chair(g, -0.62, 0.05, Math.PI / 2, ca); chair(g, 0.62, -0.05, -Math.PI / 2, cb);
-  const rug = add(scene, new THREE.CircleGeometry(1.0, 40), S(ca === 0xffc9a3 ? 0xffe4d4 : 0xdff2ea, 0.95), x, 0.003, z, false); rug.rotation.x = -Math.PI / 2;
+  const rug = add(grpRest, new THREE.CircleGeometry(1.0, 40), S(ca === 0xffc9a3 ? 0xffe4d4 : 0xdff2ea, 0.95), x, 0.003, z, false); rug.rotation.x = -Math.PI / 2;
 }
 table(-1.7, -2.6, 0xffc9a3, 0xbfe3d5);
 table(0.75, -3.25, 0xbfe3d5, 0xffe6a3);
+
+// 미용실: 거울 화장대 + 링조명 + 시술 의자 + 스툴
+const grpSalon = new THREE.Group(); scene.add(grpSalon);
+{
+  const pinkV = P(0xf4a9c4, 0.75, { clearcoat: 0.1 }), lav = P(0xd9c8f0, 0.45), white = P(0xfff7fa, 0.35), gold = S(0xe2bd6e, 0.3, { metalness: 0.85, envMapIntensity: 1 });
+  const chrome = S(0xeeeeee, 0.18, { metalness: 0.95, envMapIntensity: 1.1 }), mirror = new THREE.MeshBasicMaterial({ map: canvasTex(128, 192, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#f4f0fb'); gr.addColorStop(0.5, '#dfe8f3'); gr.addColorStop(1, '#efe4f6'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(w * 0.15, h * 0.35); g.lineTo(w * 0.42, h * 0.12); g.lineTo(w * 0.52, h * 0.18); g.lineTo(w * 0.22, h * 0.45); g.fill();
+    g.beginPath(); g.moveTo(w * 0.3, h * 0.55); g.lineTo(w * 0.6, h * 0.3); g.lineTo(w * 0.64, h * 0.34); g.lineTo(w * 0.34, h * 0.6); g.fill(); }) });
+  const ringM = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff1e2, emissiveIntensity: 1.5, roughness: 0.4 });
+  const rugM = S(0xfbe1ea, 0.95), ovalGeo = new THREE.CircleGeometry(0.3, 40), ringGeo = new THREE.TorusGeometry(0.31, 0.022, 10, 56);
+  [[-1.7, -2.95], [0.75, -3.4]].forEach(([x, z]) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); grpSalon.add(g);
+    add(g, RB(0.9, 0.05, 0.38, 0.02), white, 0, 0.78, -0.2);
+    add(g, RB(0.05, 0.76, 0.34, 0.02), lav, -0.42, 0.38, -0.2); add(g, RB(0.05, 0.76, 0.34, 0.02), lav, 0.42, 0.38, -0.2);
+    const mr = add(g, ovalGeo, mirror, 0, 1.4, -0.37, false); mr.scale.y = 1.35;
+    const rg = add(g, ringGeo, ringM, 0, 1.4, -0.36, false); rg.scale.y = 1.35;
+    add(g, CYL(0.035, 0.03, 0.1, 12), gold, 0.3, 0.86, -0.22, false);
+    const ch = new THREE.Group(); ch.position.set(0, 0, 0.45); g.add(ch);
+    add(ch, CYL(0.22, 0.26, 0.04, 24), chrome, 0, 0.02, 0);
+    add(ch, CYL(0.04, 0.04, 0.36, 12), chrome, 0, 0.22, 0);
+    add(ch, RB(0.48, 0.12, 0.46, 0.05), pinkV, 0, 0.45, 0);
+    add(ch, RB(0.48, 0.46, 0.11, 0.05), pinkV, 0, 0.72, 0.2);
+    add(ch, RB(0.06, 0.06, 0.38, 0.03), gold, -0.25, 0.58, 0); add(ch, RB(0.06, 0.06, 0.38, 0.03), gold, 0.25, 0.58, 0);
+    const st = new THREE.Group(); st.position.set(0.62, 0, 0.35); g.add(st);
+    add(st, CYL(0.16, 0.16, 0.07, 22), lav, 0, 0.5, 0); add(st, CYL(0.025, 0.025, 0.46, 8), chrome, 0, 0.24, 0); add(st, CYL(0.14, 0.16, 0.03, 18), chrome, 0, 0.015, 0);
+    const rug = add(g, new THREE.CircleGeometry(0.75, 36), rugM, 0, 0.003, 0.3, false); rug.rotation.x = -Math.PI / 2;
+  });
+}
+// 주부·가정: 소파 + 러그 + 커피테이블 + 스탠드 + 화분
+const grpHome = new THREE.Group(); scene.add(grpHome);
+const SOFA_SEAT = 0.56;
+{
+  const sage = P(0xa9c4a0, 0.8, { clearcoat: 0.05 }), sageL = P(0xc3d8b9, 0.85, { clearcoat: 0.05 }), wood = S(0xd8b48a, 0.55, { map: woodTop }), ivory = P(0xfaf5ea, 0.5);
+  const sofa = new THREE.Group(); sofa.position.set(-1.0, 0, -3.15); grpHome.add(sofa);
+  add(sofa, RB(1.75, 0.3, 0.8, 0.09), sage, 0, 0.27, 0);
+  add(sofa, RB(0.8, 0.14, 0.64, 0.06), sageL, -0.41, 0.49, 0.06); add(sofa, RB(0.8, 0.14, 0.64, 0.06), sageL, 0.41, 0.49, 0.06);
+  add(sofa, RB(1.75, 0.5, 0.2, 0.09), sage, 0, 0.62, -0.31);
+  add(sofa, RB(0.18, 0.42, 0.8, 0.08), sage, -0.86, 0.45, 0); add(sofa, RB(0.18, 0.42, 0.8, 0.08), sage, 0.86, 0.45, 0);
+  const pl = add(sofa, RB(0.3, 0.28, 0.1, 0.05), P(0xf2a48e, 0.8), -0.55, 0.68, -0.16); pl.rotation.z = 0.18;
+  const rug = add(grpHome, new THREE.CircleGeometry(1.25, 44), S(0xf3e9d8, 0.95), -1.0, 0.003, -2.5, false); rug.rotation.x = -Math.PI / 2; rug.scale.set(1.35, 1, 1);
+  const tb = new THREE.Group(); tb.position.set(-1.0, 0, -2.25); grpHome.add(tb);
+  add(tb, CYL(0.36, 0.36, 0.04, 32), wood, 0, 0.4, 0); add(tb, CYL(0.05, 0.08, 0.38, 12), ivory, 0, 0.19, 0);
+  add(tb, CYL(0.04, 0.034, 0.09, 16), P(0xffe6a3, 0.3), 0.1, 0.465, 0.05);
+  const lamp = new THREE.Group(); lamp.position.set(-2.35, 0, -3.5); grpHome.add(lamp);
+  add(lamp, CYL(0.015, 0.015, 1.45, 8), S(0x8f7a69, 0.5), 0, 0.73, 0); add(lamp, CYL(0.13, 0.15, 0.03, 18), S(0x8f7a69, 0.5), 0, 0.015, 0);
+  const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, 0.24, 24, 1, true), P(0xfff3dc, 0.7, { side: THREE.DoubleSide, emissive: 0xffe2b0, emissiveIntensity: 0.35 })); sh.position.y = 1.5; lamp.add(sh);
+  [[0.35, -3.95, 0.11], [-2.75, -1.9, 0.09]].forEach(([x, z, r]) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); grpHome.add(g);
+    add(g, CYL(r * 1.6, r * 1.2, r * 3, 18), P(0xe8dcc6, 0.6), 0, r * 1.5, 0);
+    const lm = S(0x8fbf8a, 0.65); add(g, SPH(r * 2.4, 14, 10), lm, 0, r * 5, 0).scale.y = 1.3; add(g, SPH(r * 1.7, 12, 10), lm, r * 1.4, r * 7, 0);
+  });
+}
 
 /* =========================================================
    4. 카운터와 상호작용 물건
@@ -584,9 +792,9 @@ const COUNTER_TOP = 0.95;
 const CB = { x0: -1.25, x1: 1.0, z0: -0.75, z1: 0 };
 const counter = new THREE.Group(); counter.position.set((CB.x0 + CB.x1) / 2, 0, (CB.z0 + CB.z1) / 2); scene.add(counter);
 const cw = CB.x1 - CB.x0, cd = CB.z1 - CB.z0;
-add(counter, RB(cw, 0.88, cd, 0.06), S(0xf7e6c4, 0.75), 0, 0.44, 0);
-add(counter, RB(cw + 0.14, 0.07, cd + 0.12, 0.03), S(0xffffff, 0.48, { map: woodTop, envMapIntensity: 0.5 }), 0, 0.915, 0);
-add(counter, RB(cw - 0.1, 0.05, 0.03, 0.02), S(0xef8a74, 0.5), 0, 0.84, -cd / 2 - 0.01, false); // 손님쪽 코랄 라인
+add(counter, RB(cw, 0.88, cd, 0.06), TM(S(0xf7e6c4, 0.75), 0xf7e6c4, 0xfbe1ea, 0xefe6d6), 0, 0.44, 0);
+add(counter, RB(cw + 0.14, 0.07, cd + 0.12, 0.03), TM(S(0xffffff, 0.48, { map: woodTop, envMapIntensity: 0.5 }), 0xffffff, 0xfff3f0, 0xf4e6d2), 0, 0.915, 0);
+add(counter, RB(cw - 0.1, 0.05, 0.03, 0.02), TM(S(0xef8a74, 0.5), 0xef8a74, 0xe6c27a, 0x9fbf8f), 0, 0.84, -cd / 2 - 0.01, false); // 손님쪽 코랄 라인
 // 내 쪽 수납칸 (카운터 안쪽이 보임)
 for (let i = 0; i < 3; i++) {
   const x = -cw / 2 + 0.4 + i * 0.72;
@@ -597,7 +805,7 @@ for (let i = 0; i < 3; i++) {
 
 /* ---- 포스기 ---- */
 const pos = new THREE.Group(); pos.position.set(0.05, COUNTER_TOP, -0.33); scene.add(pos);
-const posBody = P(0x9fd9c8, 0.38), posCream = P(0xfffaf0, 0.35);
+const posBody = TM(P(0x9fd9c8, 0.38), 0x9fd9c8, 0xf2b8cc, 0x9fd9c8), posCream = P(0xfffaf0, 0.35);
 add(pos, RB(0.38, 0.07, 0.3, 0.03), posBody, 0, 0.035, 0);
 add(pos, RB(0.08, 0.17, 0.07, 0.025), posBody, 0, 0.14, -0.07);
 for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++)
@@ -612,7 +820,7 @@ add(screenPivot, CYL(0.022, 0.022, 0.006, 16), S(0xef8a74, 0.5), 0.15, 0.1, 0.02
 add(screenPivot, CYL(0.016, 0.016, 0.006, 5), S(0xffd56b, 0.5), -0.155, -0.1, 0.02, false).rotation.x = Math.PI / 2;
 function drawPos(today, monthS) {
   const g = posCanvas.getContext('2d'), w = 360, h = 230;
-  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#e2f6ee'); gr.addColorStop(1, '#c4ebdd');
+  const sal = MODE === 'salon', gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, sal ? '#fde8f0' : '#e2f6ee'); gr.addColorStop(1, sal ? '#f1d2e4' : '#c4ebdd');
   g.fillStyle = gr; g.fillRect(0, 0, w, h);
   g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(14, 14, w - 28, h - 28, 22) : g.rect(14, 14, w - 28, h - 28); g.fill();
   // 귀여운 얼굴
@@ -620,7 +828,7 @@ function drawPos(today, monthS) {
   g.fillStyle = '#4a3b30'; g.beginPath(); g.arc(w - 72, 58, 3.6, 0, Math.PI * 2); g.arc(w - 52, 58, 3.6, 0, Math.PI * 2); g.fill();
   g.strokeStyle = '#4a3b30'; g.lineWidth = 2.6; g.lineCap = 'round'; g.beginPath(); g.arc(w - 62, 66, 7, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
   g.fillStyle = 'rgba(239,138,116,.55)'; g.beginPath(); g.arc(w - 80, 70, 4.5, 0, Math.PI * 2); g.arc(w - 44, 70, 4.5, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#3fa58a'; g.font = `700 21px ${FONT}`; g.fillText('오늘 매출', 36, 60);
+  g.fillStyle = sal ? '#c0608a' : '#3fa58a'; g.font = `700 21px ${FONT}`; g.fillText(MC().screen, 36, 60);
   let size = 46; const t = won(today);
   do { g.font = `800 ${size}px ${FONT}`; size -= 2; } while (g.measureText(t).width > w - 80 && size > 20);
   g.fillStyle = '#4a3b30'; g.fillText(t, 36, 128);
@@ -637,13 +845,46 @@ paper.rotation.x = -0.35;
 const paperMat = S(0xfffdf8, 0.9);
 [[0.62, -0.1, 0.4], [0.68, -0.18, -0.3]].forEach(([x, z, r]) => { const m = add(scene, RB(0.08, 0.003, 0.15, 0.001, 1), paperMat, x, COUNTER_TOP + 0.002, z, false); m.rotation.y = r; });
 
+/* ---- 가정: 노트북 + 가계부 노트 (포스 자리) ---- */
+const laptop = new THREE.Group(); laptop.position.set(0.05, COUNTER_TOP, -0.33); scene.add(laptop);
+const lapCanvas = document.createElement('canvas'); lapCanvas.width = 360; lapCanvas.height = 230;
+const lapTex = new THREE.CanvasTexture(lapCanvas); lapTex.colorSpace = THREE.SRGBColorSpace;
+const lapScreenMat = new THREE.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: lapTex, emissiveIntensity: 0.62, roughness: 0.15, clearcoat: 1, envMapIntensity: 0.6 });
+{
+  const al = P(0xdfe3e2, 0.3, { metalness: 0.5 });
+  add(laptop, RB(0.38, 0.022, 0.26, 0.012), al, 0, 0.011, 0.02);
+  add(laptop, RB(0.32, 0.004, 0.12, 0.002), S(0xb9c0c0, 0.6), 0, 0.024, 0.0, false);
+  const hinge = new THREE.Group(); hinge.position.set(0, 0.022, -0.105); hinge.rotation.x = -0.3; laptop.add(hinge);
+  add(hinge, RB(0.38, 0.25, 0.014, 0.012), al, 0, 0.125, 0);
+  add(hinge, new THREE.PlaneGeometry(0.34, 0.21), lapScreenMat, 0, 0.127, 0.0095, false);
+  const nb = new THREE.Group(); nb.position.set(0.38, 0, 0.06); nb.rotation.y = -0.25; laptop.add(nb);
+  add(nb, RB(0.2, 0.022, 0.27, 0.01), P(0xa9c4a0, 0.5), 0, 0.011, 0);
+  add(nb, RB(0.185, 0.016, 0.255, 0.004), S(0xfffaf0, 0.9), 0.006, 0.013, 0, false);
+  add(nb, CYL(0.007, 0.007, 0.17, 8), S(0xf2a48e, 0.5), 0.03, 0.03, 0.02, false).rotation.set(Math.PI / 2, 0, 0.5);
+}
+function drawLaptop(mo) {
+  const g = lapCanvas.getContext('2d'), w = 360, h = 230;
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#eef4e8'); gr.addColorStop(1, '#dfe9d6');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect ? g.roundRect(14, 14, w - 28, h - 28, 22) : g.rect(14, 14, w - 28, h - 28); g.fill();
+  g.font = `30px ${FONT}`; g.fillText('🏠', w - 76, 70);
+  g.fillStyle = '#6f8f63'; g.font = `700 20px ${FONT}`; g.fillText('이번 달 남은 돈', 36, 58);
+  let size = 44; const t = won(mo.net);
+  do { g.font = `800 ${size}px ${FONT}`; size -= 2; } while (g.measureText(t).width > w - 80 && size > 20);
+  g.fillStyle = mo.net >= 0 ? '#4a3b30' : '#dd5e47'; g.fillText(t, 36, 122);
+  g.fillStyle = '#8f7a69'; g.font = `600 17px ${FONT}`; g.fillText(`수입 ${won(mo.s)} · 지출 ${won(mo.exp)}`, 36, 160);
+  const r = mo.s > 0 ? Math.min(1, mo.exp / mo.s) : 1;
+  g.fillStyle = '#eee6da'; g.fillRect(36, 180, w - 72, 12); g.fillStyle = r > 0.9 ? '#ef8a74' : '#a9c4a0'; g.fillRect(36, 180, (w - 72) * r, 12);
+  lapTex.needsUpdate = true;
+}
+
 /* ---- 금고(캐시드로어) ---- */
 const safe = new THREE.Group(); safe.position.set(-0.45, COUNTER_TOP, -0.33); scene.add(safe);
-add(safe, RB(0.4, 0.26, 0.34, 0.05), P(0xf29b8a, 0.42), 0, 0.13, 0);
-add(safe, RB(0.16, 0.012, 0.03, 0.005), S(0x6f4a3d), 0, 0.262, -0.05, false); // 동전 투입구
+add(safe, RB(0.4, 0.26, 0.34, 0.05), TM(P(0xf29b8a, 0.42), 0xf29b8a, 0xeec98a, 0xd8b48a), 0, 0.13, 0);
+const coinSlot = add(safe, RB(0.16, 0.012, 0.03, 0.005), S(0x6f4a3d), 0, 0.262, -0.05, false); // 동전 투입구
 const lock = add(safe, new THREE.TorusGeometry(0.03, 0.009, 10, 24), S(0xe6b45a, 0.3, { metalness: 0.8 }), 0, 0.2, 0.172, false);
 const drawer = new THREE.Group(); drawer.position.set(0, 0.075, 0.17); safe.add(drawer);
-add(drawer, RB(0.34, 0.1, 0.03, 0.015), P(0xffe6a3, 0.4), 0, 0, 0.012);
+add(drawer, RB(0.34, 0.1, 0.03, 0.015), TM(P(0xffe6a3, 0.4), 0xffe6a3, 0xfff2f6, 0xf5efe3), 0, 0, 0.012);
 add(drawer, RB(0.13, 0.024, 0.024, 0.011), S(0xe6b45a, 0.28, { metalness: 0.85 }), 0, 0.005, 0.035);
 add(drawer, RB(0.32, 0.07, 0.3, 0.01), S(0xf6e8d6, 0.8), 0, -0.004, -0.15, false);
 const coinGeo = CYL(0.03, 0.03, 0.009, 18), goldM = S(0xf0c25e, 0.3, { metalness: 0.9, envMapIntensity: 1 });
@@ -651,6 +892,9 @@ const billGeo = RB(0.12, 0.004, 0.06, 0.002, 1), billM = S(0xa9dcc0, 0.8);
 const receiptGeo = RB(0.06, 0.003, 0.12, 0.001, 1), receiptM = S(0xffffff, 0.9, { emissive: 0x222222 });
 for (let i = 0; i < 3; i++) add(drawer, billGeo, billM, -0.09 + i * 0.09, 0.034, -0.09, false);
 for (let i = 0; i < 5; i++) add(drawer, coinGeo, goldM, -0.12 + i * 0.06, 0.035, -0.2, false);
+const homeDrawers = new THREE.Group(); safe.add(homeDrawers);
+{ const f = P(0xf5efe3, 0.45), k = S(0xc9a57c, 0.4);
+  [0.163, 0.224].forEach(y => { add(homeDrawers, RB(0.34, 0.052, 0.012, 0.01), f, 0, y, 0.176, false); add(homeDrawers, CYL(0.012, 0.012, 0.012, 10), k, 0, y, 0.186, false).rotation.x = Math.PI / 2; }); }
 
 /* ---- 장부·컵·화분 ---- */
 const book = new THREE.Group(); book.position.set(-0.88, COUNTER_TOP, -0.27); book.rotation.y = 0.25; scene.add(book);
@@ -687,7 +931,7 @@ const dArmL = dArm(-1), dArmR = dArm(1);
 /* ---- 냉장고 (오른쪽, 문 2짝 경첩 피벗) ---- */
 const FW = 0.9, FH = 1.75, FD = 0.62;
 const fridge = new THREE.Group(); fridge.position.set(1.6, 0, -1.15); fridge.rotation.y = -0.63; scene.add(fridge);
-const fShell = P(0x9fd9c4, 0.35, { metalness: 0.1, clearcoat: 0.8 });
+const fShell = TM(P(0x9fd9c4, 0.35, { metalness: 0.1, clearcoat: 0.8 }), 0x9fd9c4, 0xd9c8f0, 0xeee8da);
 const fInner = S(0xfffaf2, 0.6, { emissive: 0xfff3dc, emissiveIntensity: 0 });
 add(fridge, RB(FW, FH, 0.05, 0.02), fShell, 0, FH / 2, -FD / 2 + 0.025);
 add(fridge, RB(0.05, FH, FD, 0.02), fShell, -FW / 2 + 0.025, FH / 2, 0);
@@ -700,7 +944,7 @@ const SHELF_Y = [0.5, 0.92, 1.34];
 const shelfM = P(0xeaf6f2, 0.15, { transparent: true, opacity: 0.8 });
 SHELF_Y.forEach(y => add(fridge, RB(FW - 0.1, 0.016, FD - 0.12, 0.006), shelfM, 0, y, -0.03, false));
 const fridgeLight = new THREE.PointLight(0xfff3dc, 0, 2, 1.5); fridgeLight.position.set(0, 1.3, 0.05); fridge.add(fridgeLight);
-const doorM = P(0xb4e3d3, 0.3, { clearcoat: 1, clearcoatRoughness: 0.15 });
+const doorM = TM(P(0xb4e3d3, 0.3, { clearcoat: 1, clearcoatRoughness: 0.15 }), 0xb4e3d3, 0xe8dcf8, 0xf7f2e8);
 const glassM = new THREE.MeshPhysicalMaterial({ color: 0xd6f3ee, roughness: 0.12, metalness: 0, transparent: true, opacity: 0.5, clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.2, depthWrite: false });
 const handleM = S(0xe6b45a, 0.28, { metalness: 0.85 });
 const magnetCols = [0xef8a74, 0xffd56b];
@@ -715,20 +959,23 @@ function door(side) {
 }
 const doorL = door(-1), doorR = door(1);
 // 냉장고 안 식자재
-const ITEM = { box: [RB(0.13, 0.1, 0.13, 0.025), 0.1], tall: [RB(0.09, 0.2, 0.09, 0.025), 0.2], bottle: [CYL(0.032, 0.036, 0.2, 14), 0.2], jar: [CYL(0.05, 0.05, 0.1, 16), 0.1] };
+const ITEM = { box: [RB(0.13, 0.1, 0.13, 0.025), 0.1], tall: [RB(0.09, 0.2, 0.09, 0.025), 0.2], bottle: [CYL(0.032, 0.036, 0.2, 14), 0.2], jar: [CYL(0.05, 0.05, 0.1, 16), 0.1], fruit: [SPH(0.055, 14, 10), 0.11] };
+const KINDS = { restaurant: ['box', 'bottle', 'jar', 'tall'], salon: ['bottle', 'jar', 'tall', 'bottle'], home: ['box', 'jar', 'bottle', 'fruit'] };
+const ITEM_PAL = { salon: [0xf7a7c6, 0xc9b3ef, 0xf3d38a, 0xfbe1ea, 0xe6c27a, 0xb7a6e8, 0xffc9dd, 0xd9c8f0], home: [0xf3b27a, 0xc5e08f, 0xf7d26b, 0xef8a74, 0xe8dcc6, 0x9fd9c4, 0xf7a7b6, 0xb6cf9e] };
 const capGeo = CYL(0.02, 0.02, 0.03, 10), lidGeo = CYL(0.053, 0.053, 0.02, 16);
 const PAL = [0xef8a74, 0xffd56b, 0x9fd9c8, 0xf7a7b6, 0xb7a6e8, 0xffc9a3, 0x9cc9f0, 0xc5e08f];
 const hashStr = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
 const fridgeItems = []; const MAX_ITEMS = 12;
 function makeItem(slot, name, pop) {
-  const h = hashStr(name + slot), kinds = ['box', 'bottle', 'jar', 'tall'], k = kinds[h % 4], [geo, ih] = ITEM[k];
-  const mat = P(PAL[(h >> 3) % PAL.length], 0.4, { emissive: 0xffffff, emissiveIntensity: 0 });
+  const h = hashStr(name + slot), kinds = KINDS[MODE], k = kinds[h % 4], [geo, ih] = ITEM[k], pal = ITEM_PAL[MODE] || PAL;
+  const mat = P(pal[(h >> 3) % pal.length], 0.4, { emissive: 0xffffff, emissiveIntensity: 0 });
+  const capC = MODE === 'salon' ? 0xe6c27a : 0xfffaf0;
   const shelf = Math.floor(slot / 4), col = slot % 4;
   const g = new THREE.Group(); const y = SHELF_Y[shelf] + 0.008;
   g.position.set(-0.29 + col * 0.193, y, -0.07 + ((h >> 5) % 3) * 0.035); g.rotation.y = ((h >> 7) % 10) * 0.12; fridge.add(g);
   add(g, geo, mat, 0, ih / 2, 0, false);
-  if (k === 'bottle') add(g, capGeo, S(0xfffaf0, 0.5), 0, ih + 0.015, 0, false);
-  if (k === 'jar') add(g, lidGeo, S(0xfffaf0, 0.5), 0, ih + 0.01, 0, false);
+  if (k === 'bottle') add(g, capGeo, S(capC, 0.4, { metalness: MODE === 'salon' ? 0.7 : 0 }), 0, ih + 0.015, 0, false);
+  if (k === 'jar') add(g, lidGeo, S(capC, 0.5), 0, ih + 0.01, 0, false);
   g.userData = { baseY: y, popT: -1, spawnT: pop ? performance.now() : -1, mat };
   if (pop) g.scale.setScalar(0.001);
   fridgeItems.push(g); return g;
@@ -756,15 +1003,18 @@ const eyeL = add(catHead, eyeGeo, catEye, -0.025, 0.006, 0.058, false), eyeR = a
 { const v = []; [-1, 1].forEach(sd => [-0.008, 0, 0.008].forEach(dy => v.push(sd * 0.02, -0.014, 0.058, sd * 0.078, -0.01 + dy * 1.6, 0.05)));
   const wg = new THREE.BufferGeometry(); wg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
   const wk = new THREE.LineSegments(wg, new THREE.LineBasicMaterial({ color: 0x9a8574 })); wk.raycast = () => {}; catHead.add(wk); } // 수염은 조준 판정에서 제외                // 9 수염
+const bow = new THREE.Group(); bow.position.set(0.035, 0.05, 0.02); bow.rotation.z = -0.4; catHead.add(bow);
+{ const bm = S(0xf06fa0, 0.5); add(bow, SPH(0.016, 10, 8), bm, -0.017, 0, 0, false).scale.set(1.3, 0.8, 0.6); add(bow, SPH(0.016, 10, 8), bm, 0.017, 0, 0, false).scale.set(1.3, 0.8, 0.6); add(bow, SPH(0.008, 8, 6), S(0xe2bd6e, 0.4), 0, 0, 0.004, false); }
 const tailPivot = new THREE.Group(); tailPivot.position.set(0.02, 0.03, -0.1); catBody.add(tailPivot);
 const tail = add(tailPivot, new THREE.CapsuleGeometry(0.017, 0.12, 4, 8), furO, 0.03, 0.06, -0.02); tail.rotation.set(-0.5, 0, -0.45); // 10 꼬리
+const CAT_BY = { salon: ['야옹~ 오늘도 화이팅!', '손님 머리 예쁘다냥~', '원장님 최고냥!', '예약 꽉 차라냥!', '리본 예쁘지냥? 🎀', '골골골… 기분 좋다냥'], home: ['야옹~ 오늘도 수고했냥', '오늘 저녁 뭐 먹냥?', '남은 돈 지키라냥!', '소파 최고다냥…', '골골골… 기분 좋다냥', '장 볼 때 츄르도 사라냥 😼'] };
 const CAT_LINES = ['야옹~ 오늘도 화이팅!', '손님 더 와라냥~', '사장님 최고냥!', '골골골… 기분 좋다냥', '매출 쑥쑥 오르라냥!', '오늘 장사 대박이다냥~', '츄르는 순익에서 주라냥 😼', '잠깐 쉬어가도 된다냥'];
 let catPetT = -1, catLast = -1, catBlinkAt = 3, catBubbleUntil = 0;
 const catBubble = document.getElementById('catBubble');
 function catPet() {
   catPetT = performance.now();
-  let i; do { i = Math.floor(Math.random() * CAT_LINES.length); } while (i === catLast && CAT_LINES.length > 1); catLast = i;
-  catBubble.textContent = '🐱 ' + CAT_LINES[i]; catBubble.classList.add('show'); catBubbleUntil = performance.now() + 2600;
+  let i; do { i = Math.floor(Math.random() * (CAT_BY[MODE] || CAT_LINES).length); } while (i === catLast && (CAT_BY[MODE] || CAT_LINES).length > 1); catLast = i;
+  catBubble.textContent = '🐱 ' + (CAT_BY[MODE] || CAT_LINES)[i]; catBubble.classList.add('show'); catBubbleUntil = performance.now() + 2600;
   // 하트 파티클(DOM 10개, 끝나면 제거)
   const w = new THREE.Vector3(); catHead.getWorldPosition(w); w.project(camera);
   const sx = (w.x * 0.5 + 0.5) * innerWidth, sy = (-w.y * 0.5 + 0.5) * innerHeight, n = RM ? 4 : 10, H = ['💕', '❤️', '💗', '💖'];
@@ -802,10 +1052,17 @@ function stepCat(now, T, dt) {
   }
 }
 
+const shelfLabels = [];
+const SHELF_TXT = { restaurant: ['세무', '회계', '급여'], salon: ['세무', '장부', '예약'], home: ['가계', '영수', '보험'] };
+function drawShelfLabels() {
+  shelfLabels.forEach(({ tex, col }, i) => { const t = SHELF_TXT[MODE][i], c = tex.image, g = c.getContext('2d'), w = c.width, h = c.height;
+    g.clearRect(0, 0, w, h); g.fillStyle = '#fffaf2'; g.beginPath(); g.roundRect ? g.roundRect(4, 4, w - 8, h - 8, 12) : g.rect(4, 4, w - 8, h - 8); g.fill();
+    g.fillStyle = col; g.font = `800 30px ${FONT}`; g.textAlign = 'center'; g.fillText(t[0], w / 2, 66); g.fillText(t[1], w / 2, 108); tex.needsUpdate = true; });
+}
 /* ---- 세무회계 책장 (메시 15개: 틀 7 + 바인더 1(인스턴스) + 라벨 3 + 트로피 2 + 화분 2) ---- */
 const shelf = new THREE.Group(); shelf.position.set(-1.65, 0, -1.05); shelf.rotation.y = 0.75; scene.add(shelf);
 {
-  const SW = 0.8, SH = 1.18, SD = 0.32, wood = S(0xffffff, 0.55, { map: woodTop, envMapIntensity: 0.4 }), backM = P(0xffd9c4, 0.6, { clearcoat: 0.2 });
+  const SW = 0.8, SH = 1.18, SD = 0.32, wood = S(0xffffff, 0.55, { map: woodTop, envMapIntensity: 0.4 }), backM = TM(P(0xffd9c4, 0.6, { clearcoat: 0.2 }), 0xffd9c4, 0xf3d6ec, 0xd5e2cc);
   add(shelf, RB(0.045, SH, SD, 0.02), wood, -SW / 2 + 0.022, SH / 2, 0);
   add(shelf, RB(0.045, SH, SD, 0.02), wood, SW / 2 - 0.022, SH / 2, 0);
   add(shelf, RB(SW + 0.05, 0.05, SD + 0.03, 0.022), wood, 0, SH, 0);
@@ -825,11 +1082,8 @@ const shelf = new THREE.Group(); shelf.position.set(-1.65, 0, -1.05); shelf.rota
   place(11, 0.26, SY[1] + 0.03, 0.0, Math.PI / 2, 0.85);                                   // 눕힌 1권
   shelf.add(binders);
   // 앞쪽 3권 등 라벨: 세무 / 회계 / 급여
-  [['세무', '#c85a43'], ['회계', '#2c8a6e'], ['급여', '#a07a10']].forEach(([t, col], i) => {
-    const tex = canvasTex(64, 160, (g, w, h) => {
-      g.fillStyle = '#fffaf2'; g.beginPath(); g.roundRect ? g.roundRect(4, 4, w - 8, h - 8, 12) : g.rect(4, 4, w - 8, h - 8); g.fill();
-      g.fillStyle = col; g.font = `800 30px ${FONT}`; g.textAlign = 'center'; g.fillText(t[0], w / 2, 66); g.fillText(t[1], w / 2, 108);
-    });
+  ['#c85a43', '#2c8a6e', '#a07a10'].forEach((col, i) => {
+    const tex = canvasTex(64, 160, () => {}); shelfLabels.push({ tex, col });
     add(shelf, new THREE.PlaneGeometry(0.046, 0.115), S(0xffffff, 0.8, { map: tex }), -0.28 + i * 0.068, SY[0] + 0.17, 0.1265, false);
   });
   // 맨 위 칸: 트로피 + 화분
@@ -839,14 +1093,60 @@ const shelf = new THREE.Group(); shelf.position.set(-1.65, 0, -1.05); shelf.rota
   add(shelf, SPH(0.07, 12, 10), S(0x86c9a5, 0.6), 0.17, SY[2] + 0.15, 0).scale.set(1, 1.15, 1);
 }
 
+/* ---- 직원 캐릭터 (가정: 가족 일정 보드 + 알림 비서) ---- */
+const staff = new THREE.Group(); staff.position.set(1.34, 0, -0.42); staff.rotation.y = -0.62; staff.scale.setScalar(0.82); scene.add(staff);
+const stBody = new THREE.Group(); staff.add(stBody);
+const stShirt = TM(P(0xfff2c4, 0.6), 0xfff2c4, 0xf8e3f0, 0xdfe8d6), stApron = TM(P(0x9fd9c8, 0.55, { side: THREE.DoubleSide }), 0x9fd9c8, 0xc9b3ef, 0xe8dcc6);
+const stSkin = P(0xffe3c8, 0.55), stDark = S(0x5b4a3f, 0.7), stEye = S(0x3d2f28, 0.3);
+add(stBody, new THREE.CapsuleGeometry(0.055, 0.24, 4, 10), stDark, -0.07, 0.19, 0); add(stBody, new THREE.CapsuleGeometry(0.055, 0.24, 4, 10), stDark, 0.07, 0.19, 0);
+add(stBody, new THREE.CapsuleGeometry(0.155, 0.24, 6, 16), stShirt, 0, 0.6, 0);
+const stApronMesh = add(stBody, new THREE.CylinderGeometry(0.162, 0.17, 0.32, 18, 1, true, -0.95, 1.9), stApron, 0, 0.54, 0, false);
+const stHead = new THREE.Group(); stHead.position.set(0, 0.98, 0); stBody.add(stHead);
+add(stHead, SPH(0.17, 20, 16), stSkin, 0, 0, 0);
+add(stHead, new THREE.SphereGeometry(0.176, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.42), stDark, 0, 0.012, -0.012, false);
+add(stHead, SPH(0.016, 10, 8), stEye, -0.055, -0.005, 0.157, false); add(stHead, SPH(0.016, 10, 8), stEye, 0.055, -0.005, 0.157, false);
+const stBl = S(0xf7a7a0, 0.8);
+add(stHead, SPH(0.02, 8, 6), stBl, -0.1, -0.045, 0.13, false).scale.set(1, 0.6, 0.5); add(stHead, SPH(0.02, 8, 6), stBl, 0.1, -0.045, 0.13, false).scale.set(1, 0.6, 0.5);
+const stSmile = add(stHead, new THREE.TorusGeometry(0.024, 0.006, 6, 12, Math.PI), stEye, 0, -0.05, 0.16, false); stSmile.rotation.z = Math.PI;
+const stCap = new THREE.Group(); stHead.add(stCap);
+add(stCap, new THREE.SphereGeometry(0.182, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.36), P(0xef8a74, 0.5), 0, 0.03, 0, false);
+add(stCap, CYL(0.12, 0.12, 0.012, 20), P(0xef8a74, 0.5), 0, 0.075, 0.12, false).scale.set(1, 1, 0.75);
+const stBand = add(stHead, new THREE.TorusGeometry(0.168, 0.016, 8, 32), P(0xc9b3ef, 0.4), 0, 0.07, -0.01, false); stBand.rotation.x = Math.PI / 2 - 0.35;
+function stArm(side) { const p = new THREE.Group(); p.position.set(0.17 * side, 0.76, 0.01); stBody.add(p); add(p, new THREE.CapsuleGeometry(0.045, 0.2, 4, 8), stShirt, 0, -0.15, 0); add(p, SPH(0.048, 10, 8), stSkin, 0, -0.3, 0); p.rotation.z = 0.12 * side; return p; }
+const stArmL = stArm(-1), stArmR = stArm(1);
+// 가정 모드: 가족 일정 보드(이젤)
+const boardGrp = new THREE.Group(); boardGrp.position.set(0.42, 0, 0.05); boardGrp.rotation.y = 0.2; staff.add(boardGrp);
+const boardCanvas = document.createElement('canvas'); boardCanvas.width = 320; boardCanvas.height = 240;
+const boardTex = new THREE.CanvasTexture(boardCanvas); boardTex.colorSpace = THREE.SRGBColorSpace;
+{ const w = S(0xc9a57c, 0.6);
+  const l1 = add(boardGrp, CYL(0.012, 0.012, 1.1, 6), w, -0.15, 0.55, -0.04); l1.rotation.z = 0.08; const l2 = add(boardGrp, CYL(0.012, 0.012, 1.1, 6), w, 0.15, 0.55, -0.04); l2.rotation.z = -0.08;
+  add(boardGrp, RB(0.46, 0.35, 0.025, 0.02), w, 0, 0.98, 0);
+  add(boardGrp, new THREE.PlaneGeometry(0.42, 0.31), S(0xffffff, 0.8, { map: boardTex }), 0, 0.98, 0.014, false); }
+function drawBoard() {
+  const g = boardCanvas.getContext('2d'), w = 320, h = 240;
+  g.fillStyle = '#fffaf2'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#6f8f63'; g.font = `800 24px ${FONT}`; g.fillText('🗓️ 우리집 일정', 18, 38);
+  (DATA.family || []).filter(f => !f.done).slice(0, 4).forEach((f, i) => {
+    g.fillStyle = ['#ef8a74', '#a9c4a0', '#f3c56a', '#b7a6e8'][i]; g.beginPath(); g.arc(26, 74 + i * 42, 7, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#4a3b30'; g.font = `700 18px ${FONT}`; g.fillText(String(f.text).slice(0, 11), 42, 80 + i * 42);
+  });
+  boardTex.needsUpdate = true;
+}
+let stWaveT = -1, stNextWave = 4;
+
 /* ---- 상호작용 등록 ---- */
 const OBJ = {};
-function register(key, root, o) {
-  const mats = new Set(); root.traverse(m => { if (m.isMesh && m.material && m.material.emissive && m.material !== screenMat) mats.add(m.material); });
-  mats.forEach(m => { m.userData.baseEm = m.emissive.clone(); m.userData.baseEI = m.emissiveIntensity; });
-  root.userData.key = key;
-  OBJ[key] = Object.assign({ root, mats: [...mats], h: 0, baseY: root.position.y }, o);
+function bindRoot(key, root) {
+  const o = OBJ[key];
+  if (!root.userData.mats) {
+    const mats = new Set(); root.traverse(m => { if (m.isMesh && m.material && m.material.emissive && m.material !== screenMat && m.material !== lapScreenMat) mats.add(m.material); });
+    mats.forEach(m => { m.userData.baseEm = m.emissive.clone(); m.userData.baseEI = m.emissiveIntensity; });
+    root.userData.mats = [...mats];
+  }
+  if (o.root && o.root !== root) o.root.position.y = o.baseY;
+  o.root = root; o.mats = root.userData.mats; o.baseY = root.position.y; root.userData.key = key;
 }
+function register(key, root, o) { OBJ[key] = Object.assign({ h: 0 }, o); bindRoot(key, root); }
 register('pos', pos, { emoji: '🖥️', name: '포스기', chip: '탭해서 열기', anchor: V3(0.05, 1.36, -0.33),
   focus: { t: V3(0.05, 1.17, -0.38), dir: V3(0, 0.6, 1), dist: 1.15, fit: 0.45, hh: 0.26 } });
 register('safe', safe, { emoji: '💰', name: '금고', chip: '탭해서 열기', anchor: V3(-0.45, 1.3, -0.33),
@@ -858,7 +1158,29 @@ register('ledger', shelf, { emoji: '📚', name: '세무회계 장부', short: '
 register('cat', cat, { emoji: '🐱', name: '점장 고양이', chip: '쓰다듬기', anchor: V3(-0.17, 1.27, -0.06), focus: null });
 register('owner', owner, { emoji: '🙋', name: '사장님', chip: '말 걸기', anchor: V3(0.85, 1.28, -0.55),
   focus: null });
-const PICKABLE = Object.values(OBJ).map(o => o.root);
+register('staff', staff, { emoji: '🧑‍🍳', name: '직원', chip: '근태·급여 보기', anchor: V3(1.34, 1.2, -0.42),
+  focus: { t: V3(1.36, 0.72, -0.4), dir: V3(-0.6, 0.35, 1), dist: 1.7, fit: 0.55, hh: 0.62 } });
+let PICKABLE = [];
+const refreshPickable = () => { PICKABLE = Object.values(OBJ).filter(o => o.root.visible).map(o => o.root); };
+const CAT_AT = { counter: [V3(-0.17, COUNTER_TOP, -0.06), 0.25, 1, V3(-0.17, 1.27, -0.06)], sofa: [V3(-0.62, SOFA_SEAT, -3.05), 0.15, 1.7, V3(-0.62, SOFA_SEAT + 0.62, -3.05)] };
+// 업종 바꾸기: 색·물건·라벨을 그 방에 맞게
+function applyMode3D() {
+  const m = MODE, home = m === 'home', salon = m === 'salon';
+  THEMED.forEach(([mat, c]) => mat.color.setHex(c[m]));
+  const bg = { restaurant: 0xf3e6d6, salon: 0xf6e4ea, home: 0xf2eee4 }[m]; scene.background.setHex(bg); scene.fog.color.setHex(bg);
+  coralL.color.setHex({ restaurant: 0xff9e8a, salon: 0xff9ec4, home: 0xffd2a0 }[m]);
+  mintL.color.setHex({ restaurant: 0x9fe3cf, salon: 0xc5a8ff, home: 0xc9e3b8 }[m]);
+  grpRest.visible = m === 'restaurant'; grpSalon.visible = salon; grpHome.visible = home;
+  pos.visible = printer.visible = !home; laptop.visible = home;
+  homeDrawers.visible = home; lock.visible = coinSlot.visible = !home;
+  bow.visible = salon;
+  stCap.visible = m === 'restaurant'; stBand.visible = salon; stApronMesh.visible = !home; boardGrp.visible = home;
+  const ca = CAT_AT[home ? 'sofa' : 'counter']; cat.position.copy(ca[0]); cat.rotation.y = ca[1]; cat.scale.setScalar(ca[2]);
+  OBJ.cat.anchor = ca[3]; OBJ.cat.baseY = cat.position.y;
+  bindRoot('pos', home ? laptop : pos);
+  Object.values(OBJ).forEach(o => { o.h = 0; });
+  refreshPickable(); drawShelfLabels(); drawBoard();
+}
 
 /* =========================================================
    5. 1인칭 카메라 (yaw/pitch + 관성 + 부드러운 이동)
@@ -970,67 +1292,104 @@ function stepHud(now) {
   ['s', 'e', 'n'].forEach(k => { hudVal[k] = hudTween.from[k] + (hudTween.to[k] - hudTween.from[k]) * e; });
   paintHud(); if (t >= 1) hudTween = null;
 }
-function refreshPos() { const mo = month(); drawPos(mo.today, mo.s); }
+function refreshPos() { const mo = month(); if (MODE === 'home') drawLaptop(mo); else drawPos(mo.today, mo.s); }
 
 /* =========================================================
    8. 패널
    ========================================================= */
 const panel = document.getElementById('panel'), pBody = document.getElementById('pBody'), pTag = document.getElementById('pTag'), pTitle = document.getElementById('pTitle');
 let ledgerAll = false, ledgerMore = false, fixedEdit = false;
-let activeKey = null, formOpen = false, saleChannel = '매장', lastNewId = null, sampleArm = 0;
-const CHANNELS = ['매장', '배달', '예약'], QUICK_ING = ['채소', '육류', '빵·유제품', '소스·양념', '음료'];
+let activeKey = null, formOpen = false, saleChannel = MODES[MODE].channels[0], lastNewId = null, sampleArm = 0;
+const pct = (a, b) => b > 0 ? Math.round(a / b * 100) : 0;
+const netColor = n => `color:${n >= 0 ? 'var(--pos)' : 'var(--neg)'}`;
+function cards3(a, b, c) {
+  return `<div class="cards"><div class="card"><span>${a[0]}</span><b class="num">${won(a[1])}</b></div><div class="card"><span>${b[0]}</span><b class="num">${won(b[1])}</b></div><div class="card"><span>${c[0]}</span><b class="num" style="${netColor(c[1])}">${won(c[1])}</b></div></div>`;
+}
+function amtField(ph) { return `<div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="${ph}" maxlength="13">`; }
 function renderPanel() {
-  const mo = month(); let h = '';
+  const mo = month(), c = MC(), home = MODE === 'home', ob = c.obj; let h = '';
+  const [e1, n1] = ob[activeKey] ? ob[activeKey] : ['', ''];
   if (activeKey === 'pos') {
-    pTag.textContent = '🖥️ 포스기 · 매출'; pTitle.textContent = `${mo.k.m}월 매출`;
-    h += `<div class="cards"><div class="card"><span>매출</span><b class="num">${won(mo.s)}</b></div><div class="card"><span>지출</span><b class="num">${won(mo.exp)}</b></div><div class="card"><span>순익</span><b class="num" style="color:${mo.net >= 0 ? 'var(--pos)' : 'var(--neg)'}">${won(mo.net)}</b></div></div>`;
-    h += `<div class="sec"><span>최근 매출</span><span>${mo.sales.length}건</span></div><div class="rows">`;
+    pTag.textContent = home ? '💻 가계부 노트 · 수입/생활비' : `${e1} ${n1} · ${c.inc}`;
+    pTitle.textContent = home ? `${mo.k.m}월 가계부` : `${mo.k.m}월 ${c.inc}`;
+    h += cards3([c.hud[0], mo.s], [c.hud[1], mo.exp], [c.hud[2], mo.net]);
+    h += `<div class="sec"><span>최근 ${c.inc}</span><span>${mo.sales.length}건</span></div><div class="rows">`;
     const r = recent(mo.sales);
-    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)} ${esc(x.time || '')}</span><span class="chip c-${esc(x.channel)}">${esc(x.channel)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : '<div class="empty">아직 이번 달 매출이 없어요.</div>';
+    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)} ${esc(x.time || '')}</span><span class="chip c-${esc(x.channel)}">${esc(x.channel)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : `<div class="empty">아직 이번 달 ${c.inc}이 없어요.</div>`;
     h += '</div>';
-    h += !formOpen ? `<button class="primary" data-act="open-form">+ 매출 입력</button>` : `<div class="form">
-      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 12,000" maxlength="13">
-      <div class="qk"><button data-add="10000">+1만</button><button data-add="50000">+5만</button><button data-add="100000">+10만</button></div></div>
-      <div class="field"><label>채널</label><div class="seg">${CHANNELS.map(c => `<button data-ch="${c}" class="${c === saleChannel ? 'on' : ''}">${c}</button>`).join('')}</div></div>
+    if (home) {
+      h += `<div class="sec" style="margin-top:14px"><span>최근 생활비</span><span>${mo.pers.length}건</span></div><div class="rows">`;
+      const rp = recent(mo.pers);
+      h += rp.length ? rp.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)}</span><span>${esc(x.name)}</span></div><b class="num">−${won(x.amount)}</b></div>`).join('') : '<div class="empty">아직 생활비 기록이 없어요.</div>';
+      h += '</div>';
+    }
+    if (!formOpen) h += `<button class="primary" data-act="open-form">+ ${c.inc} 입력</button>` + (home ? `<button class="ghost" data-act="open-spend">🧾 + 생활비 지출 입력</button>` : '');
+    else if (formOpen === 'spend') h += `<div class="form">
+      <div class="field"><label for="fName">어디에 썼나요?</label><input id="fName" autocomplete="off" placeholder="예: 생활용품" maxlength="20" style="font-size:16px">
+      <div class="qk">${['생활용품', '교통', '병원', '외식', '경조사'].map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
+      ${amtField('예: 23,000')}</div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-spend">생활비로 기록</button></div></div>`;
+    else h += `<div class="form">${amtField(home ? '예: 3,200,000' : '예: 12,000')}
+      <div class="qk"><button data-add="10000">+1만</button><button data-add="50000">+5만</button><button data-add="100000">+10만</button>${home ? '<button data-add="1000000">+100만</button>' : ''}</div></div>
+      <div class="field"><label>${home ? '종류' : MODE === 'salon' ? '시술 종류' : '채널'}</label><div class="seg">${c.channels.map(x => `<button data-ch="${x}" class="${x === saleChannel ? 'on' : ''}">${x}</button>`).join('')}</div></div>
       <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-sale">저장</button></div></div>`;
   } else if (activeKey === 'fridge') {
-    pTag.textContent = '🧊 냉장고 · 식자재'; pTitle.textContent = `${mo.k.m}월 식자재비`;
-    h += `<div class="big"><span>이번 달 식자재비 합계</span><b class="num">${won(mo.i)}</b><em>${mo.ing.length}건 · 냉장고 칸 ${Math.min(mo.ing.length, MAX_ITEMS)}/${MAX_ITEMS}</em></div>`;
-    h += `<div class="sec"><span>최근 식자재</span></div><div class="rows">`;
+    pTag.textContent = `${e1} ${n1} · ${c.varW}`; pTitle.textContent = `${mo.k.m}월 ${c.varTotal}`;
+    const slot = MODE === 'salon' ? '선반 칸' : '냉장고 칸';
+    h += `<div class="big"><span>이번 달 ${c.varTotal} 합계</span><b class="num">${won(mo.i)}</b><em>${mo.ing.length}건 · ${slot} ${Math.min(mo.ing.length, MAX_ITEMS)}/${MAX_ITEMS}</em></div>`;
+    h += `<div class="sec"><span>최근 ${c.varW}</span></div><div class="rows">`;
     const r = recent(mo.ing);
-    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)}</span><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : '<div class="empty">냉장고가 비었어요. 첫 식자재를 넣어볼까요?</div>';
+    h += r.length ? r.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)}</span><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('') : `<div class="empty">아직 비어 있어요. 첫 ${c.varW}를 넣어볼까요?</div>`;
     h += '</div>';
-    h += !formOpen ? `<button class="primary" data-act="open-form">+ 식자재 지출 입력</button>` : `<div class="form">
-      <div class="field"><label for="fName">품목</label><input id="fName" autocomplete="off" placeholder="예: 채소" maxlength="20" style="font-size:16px">
-      <div class="qk">${QUICK_ING.map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
-      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 38,000" maxlength="13"></div>
-      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-ing">냉장고에 넣기</button></div></div>`;
+    const putW = MODE === 'salon' ? '선반에 채우기' : '냉장고에 넣기';
+    h += !formOpen ? `<button class="primary" data-act="open-form">+ ${c.varW} 입력</button>` : `<div class="form">
+      <div class="field"><label for="fName">품목</label><input id="fName" autocomplete="off" placeholder="예: ${c.quickVar[0]}" maxlength="20" style="font-size:16px">
+      <div class="qk">${c.quickVar.map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
+      ${amtField('예: 38,000')}</div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-ing">${putW}</button></div></div>`;
   } else if (activeKey === 'safe') {
-    pTag.textContent = '💰 금고 · 고정비'; pTitle.textContent = `${mo.k.m}월 고정비`;
-    h += `<div class="sec"><span>매달 나가는 돈</span><span>${DATA.fixed.length}개 항목</span></div><div class="rows">`;
+    pTag.textContent = `${e1} ${n1} · ${c.fixW}`; pTitle.textContent = `${mo.k.m}월 ${c.fixW}`;
+    h += `<div class="sec"><span>매달 나가는 돈</span><span>${DATA.fixed.length}개 항목</span></div><div class="rows${fixedEdit ? ' fx-edit' : ''}">`;
     if (!fixedEdit) {
       h += DATA.fixed.map(x => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><b class="num">${won(x.amount)}</b></div>`).join('');
-      h += `<div class="row total"><div class="l"><span>고정비 합계</span></div><b class="num">${won(mo.f)}</b></div></div><button class="ghost" data-act="edit-fixed">✏️ 고정비 금액 수정</button>`;
+      h += `<div class="row total"><div class="l"><span>${c.fixW} 합계</span></div><b class="num">${won(mo.f)}</b></div></div><button class="ghost" data-act="edit-fixed">✏️ ${c.fixW} 금액 수정</button>`;
     } else {
-      h = h.replace('<div class="rows">', '<div class="rows fx-edit">');
       h += DATA.fixed.map((x, i) => `<div class="row"><div class="l"><span>${esc(x.name)}</span></div><input class="num amt" data-fx="${i}" inputmode="numeric" maxlength="13" value="${Number(x.amount).toLocaleString('ko-KR')}" aria-label="${esc(x.name)} 금액"></div>`).join('');
       h += `</div><div class="factions" style="margin-top:10px"><button class="cancel" data-act="cancel-fixed">취소</button><button class="save" data-act="save-fixed">저장</button></div>`;
     }
-    h += `<div class="sec" style="margin-top:16px"><span>이번 달 순익 계산</span></div><div class="rows">
-      <div class="row"><div class="l"><span>매출</span></div><b class="num">${won(mo.s)}</b></div>
-      <div class="row"><div class="l"><span>− 식자재</span></div><b class="num">${won(mo.i)}</b></div>
-      <div class="row"><div class="l"><span>− 고정비</span></div><b class="num">${won(mo.f)}</b></div>
-      <div class="row total"><div class="l"><span>= 순익</span></div><b class="num ${mo.net >= 0 ? 'pos' : 'neg'}">${won(mo.net)}</b></div></div>
-      <p class="hintp">고정비를 고치면 상단 숫자와 📒 복식장부에도 바로 반영돼요.</p>
-      <button class="reset" data-act="reset">↺ 샘플 데이터로 되돌리기</button>`;
+    h += `<div class="sec" style="margin-top:16px"><span>이번 달 ${c.netW} 계산</span></div><div class="rows">
+      <div class="row"><div class="l"><span>${c.inc}</span></div><b class="num">${won(mo.s)}</b></div>
+      <div class="row"><div class="l"><span>− ${c.varTotal}</span></div><b class="num">${won(mo.i)}</b></div>
+      <div class="row"><div class="l"><span>− ${c.fixW}</span></div><b class="num">${won(mo.f)}</b></div>
+      ${home ? `<div class="row"><div class="l"><span>− 생활비</span></div><b class="num">${won(mo.p)}</b></div>` : ''}
+      <div class="row total"><div class="l"><span>= ${c.netW}</span></div><b class="num ${mo.net >= 0 ? 'pos' : 'neg'}">${won(mo.net)}</b></div></div>
+      <p class="hintp">${c.fixW}를 고치면 상단 숫자와 ${home ? '📒 가계 정산표' : '📒 복식장부'}에도 바로 반영돼요.</p>
+      <button class="reset" data-act="reset">↺ 이 방을 샘플 데이터로 되돌리기</button>`;
+  } else if (activeKey === 'ledger' && home) {
+    pTag.textContent = '📚 가계부 책장'; pTitle.textContent = `📒 ${mo.k.m}월 가계 정산표`;
+    h += cards3(['수입', mo.s], ['지출', mo.exp], ['남은 돈', mo.net]);
+    const cats = [['🛒 장보기·식비', mo.i, '#f3b27a']].concat(DATA.fixed.map((f, i) => ['🏷️ ' + f.name, Number(f.amount) || 0, ['#a9c4a0', '#9cc9f0', '#b7a6e8', '#f7a7b6', '#e6c27a', '#9fd9c4'][i % 6]]));
+    const byName = {}; mo.pers.forEach(x => { byName[x.name] = (byName[x.name] || 0) + x.amount; });
+    Object.entries(byName).forEach(([n, v]) => cats.push(['🧾 ' + n, v, '#e8b8a8']));
+    cats.sort((a, b) => b[1] - a[1]);
+    const catSum = cats.reduce((s, x) => s + x[1], 0);
+    h += `<div class="sec"><span>지출 카테고리 비중</span><span>${won(mo.exp)}</span></div><div class="rows">`;
+    h += cats.filter(x => x[1] > 0).map(([n, v, col]) => `<div class="cat"><div class="ct"><span>${esc(n)}</span><b class="num">${won(v)} <small>${pct(v, mo.exp)}%</small></b></div><div class="bar"><i style="width:${Math.max(2, pct(v, mo.exp))}%;background:${col}"></i></div></div>`).join('');
+    h += `</div>`;
+    const ok = Math.round(catSum) === Math.round(mo.exp) && Math.round(mo.s - mo.exp) === Math.round(mo.net);
+    h += `<div class="bal${ok ? '' : ' bad'}">${ok ? `⚖️ 수입 ${won(mo.s)} − 지출 ${won(mo.exp)} = 남은 돈 ${won(mo.net)} ✅` : '⚠️ 합계가 맞지 않아요'}</div>`;
+    const all = [...mo.sales.map(x => ({ ...x, kind: '+', label: '수입 · ' + x.channel })), ...mo.ing.map(x => ({ ...x, kind: '−', label: '식비 · ' + x.name })), ...mo.pers.map(x => ({ ...x, kind: '−', label: '생활비 · ' + x.name }))]
+      .sort((a, b) => (b.date + (b.time || '') + b.id).localeCompare(a.date + (a.time || '') + a.id)).slice(0, 8);
+    h += `<div class="sec" style="margin-top:16px"><span>최근 내역</span><span>고정 지출 제외</span></div><div class="rows">`;
+    h += all.map(x => `<div class="row${x.id === lastNewId ? ' new' : ''}"><div class="l"><span class="d num">${md(x.date)}</span><span>${esc(x.label)}</span></div><b class="num" style="color:${x.kind === '+' ? 'var(--pos)' : 'var(--ink)'}">${x.kind}${won(x.amount)}</b></div>`).join('') || '<div class="empty">아직 내역이 없어요.</div>';
+    h += `</div><p class="hintp">수입·생활비는 💻 가계부 노트, 식비는 🧊 냉장고, 고정 지출은 🗄️ 서랍장에서 넣으면 여기 바로 반영돼요.</p>`;
   } else if (activeKey === 'ledger') {
-    pTag.textContent = '📚 세무회계 장부'; pTitle.textContent = `📒 ${mo.k.m}월 복식장부`;
+    pTag.textContent = `${e1} ${n1}`; pTitle.textContent = `📒 ${mo.k.m}월 복식장부`;
     const E = journal(ledgerAll), tb = trialBalance(E, ledgerAll);
-    const pers = (DATA.personal || []).filter(x => String(x.date).startsWith(mo.k.ym));
     h += `<div class="mode" role="tablist"><button data-mode="biz" class="${ledgerAll ? '' : 'on'}" role="tab" aria-selected="${!ledgerAll}">🏪 사업 전용</button><button data-mode="all" class="${ledgerAll ? 'on' : ''}" role="tab" aria-selected="${ledgerAll}">👛 전체</button></div>`;
-    h += `<div class="cards"><div class="card"><span>매출</span><b class="num">${won(mo.s)}</b></div><div class="card"><span>비용</span><b class="num">${won(mo.exp)}</b></div><div class="card"><span>순익</span><b class="num" style="color:${mo.net >= 0 ? 'var(--pos)' : 'var(--neg)'}">${won(mo.net)}</b></div></div>`;
-    h += ledgerAll ? `<div class="pnote">👛 개인 지출 ${pers.length}건 · <b>${won(sum(pers))}</b>을 <b>개인인출</b>로 분개했어요. 사업 순익에는 들어가지 않아요.</div>`
-                   : `<div class="pnote" style="color:#2c8a6e;background:#eaf7f1">🏪 사업 거래만 보여요. 개인 지출 ${pers.length}건은 <b>전체</b>에서 볼 수 있어요.</div>`;
+    h += cards3([c.inc, mo.s], ['비용', mo.exp], ['순익', mo.net]);
+    h += ledgerAll ? `<div class="pnote">👛 개인 지출 ${mo.pers.length}건 · <b>${won(mo.p)}</b>을 <b>개인인출</b>로 분개했어요. 사업 순익에는 들어가지 않아요.</div>`
+                   : `<div class="pnote" style="color:#2c8a6e;background:#eaf7f1">🏪 사업 거래만 보여요. 개인 지출 ${mo.pers.length}건은 <b>전체</b>에서 볼 수 있어요.</div>`;
     const sorted = E.slice().sort((a, b) => (b.date + b.t + b.id).localeCompare(a.date + a.t + a.id));
     const shown = ledgerMore ? sorted : sorted.slice(0, 12);
     h += `<div class="sec"><span>자동 분개</span><span>${E.length}건 · 최신순</span></div><div class="jt">`;
@@ -1044,7 +1403,7 @@ function renderPanel() {
     else h += `<div class="form">
       <div class="field"><label for="fName">개인 지출 내용</label><input id="fName" autocomplete="off" placeholder="예: 편의점" maxlength="20" style="font-size:16px">
       <div class="qk">${['편의점', '주유', '생활용품', '병원'].map(q => `<button data-name="${q}">${q}</button>`).join('')}</div></div>
-      <div class="field"><label for="fAmt">금액(원)</label><input id="fAmt" class="num" inputmode="numeric" autocomplete="off" placeholder="예: 8,400" maxlength="13"></div>
+      ${amtField('예: 8,400')}</div>
       <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-personal">개인인출로 기록</button></div></div>`;
     h += `<div class="sec" style="margin-top:18px"><span>시산표</span><span>${ledgerAll ? '전체' : '사업 전용'}</span></div><div class="tb">`;
     h += `<div class="tr"><span>계정</span><span>차변 합</span><span>대변 합</span><span>잔액</span></div>`;
@@ -1053,7 +1412,38 @@ function renderPanel() {
     h += `<div class="tr sum"><span>합계</span><span class="num">${tb.drT.toLocaleString('ko-KR')}</span><span class="num">${tb.crT.toLocaleString('ko-KR')}</span><span></span></div></div>`;
     const ok = Math.round(tb.drT) === Math.round(tb.crT);
     h += `<div class="bal${ok ? '' : ' bad'}">${ok ? '⚖️ 차변 합계 = 대변 합계 · 균형 OK ✅' : '⚠️ 차변·대변 합계가 달라요'}</div>`;
-    h += `<p class="hintp">포스기 매출은 <b>현금/매출</b>, 냉장고 식자재는 <b>식자재비/현금</b>, 금고 고정비는 각 비용 계정/현금으로 자동 분개돼요. 월초 시재(기초 현금)는 샘플 값이에요.</p>`;
+    h += `<p class="hintp">${ob.pos[1]} ${c.inc}은 <b>현금/${c.incAcc}</b>, ${ob.fridge[1]} ${c.varW}는 <b>${c.varAcc}/현금</b>, 금고 고정비는 각 비용 계정/현금으로 자동 분개돼요. 월초 시재(기초 현금)는 샘플 값이에요.</p>`;
+  } else if (activeKey === 'staff' && home) {
+    pTag.textContent = '🗓️ 가족 일정 보드'; pTitle.textContent = '가족 일정 · 알림';
+    const fam = DATA.family || [], left = fam.filter(x => !x.done).length;
+    const due = DATA.fixed.slice(0, 3).map(x => `<span class="chip" style="background:#f3eefc;color:#7a5fc0">${esc(x.name)} ${won(x.amount)}</span>`).join(' ');
+    h += `<div class="big"><span>남은 할 일</span><b class="num">${left}개</b><em>체크하면 완료 · 보드에도 바로 반영돼요</em></div>`;
+    h += `<div class="sec"><span>일정·알림</span><span>${fam.length}개</span></div><div class="rows">`;
+    h += fam.map(x => `<div class="row fam${x.done ? ' done' : ''}${x.id === lastNewId ? ' new' : ''}"><button class="ck" data-fid="${x.id}" aria-label="${esc(x.text)} ${x.done ? '완료 취소' : '완료'}">${x.done ? '✅' : '⬜'}</button><div class="l"><span>${esc(x.text)}</span></div><span class="d">${esc(x.when)}</span></div>`).join('') || '<div class="empty">일정이 없어요.</div>';
+    h += `</div>`;
+    h += !formOpen ? `<button class="primary" data-act="open-form">+ 일정 추가</button>` : `<div class="form">
+      <div class="field"><label for="fName">할 일·일정</label><input id="fName" autocomplete="off" placeholder="예: 치과 예약" maxlength="20" style="font-size:16px"></div>
+      <div class="field"><label for="fWhen">언제</label><input id="fWhen" autocomplete="off" placeholder="예: 금요일 15:00" maxlength="16" style="font-size:16px">
+      <div class="qk">${['오늘', '내일', '이번 주말', '매달 25일'].map(q => `<button data-when="${q}">${q}</button>`).join('')}</div></div>
+      <div class="factions"><button class="cancel" data-act="cancel">취소</button><button class="save" data-act="save-fam">추가</button></div></div>`;
+    h += `<div class="sec" style="margin-top:16px"><span>이번 달 고정 지출 알림</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${due}</div>`;
+    h += `<p class="hintp">가족 일정은 이 기기에만 저장돼요.</p>`;
+  } else if (activeKey === 'staff') {
+    const ss = staffSummary(), k = mo.k, totalPay = ss.reduce((s, x) => s + x.pay, 0), working = ss.filter(x => x.working).length;
+    pTag.textContent = `${e1} ${n1} · 근태관리`; pTitle.textContent = '근태관리 & 급여 요약';
+    h += `<div class="cards"><div class="card"><span>지금 근무 중</span><b class="num">${working} / ${ss.length}명</b></div><div class="card"><span>이번 달 근무</span><b class="num">${hm(ss.reduce((s, x) => s + x.mins, 0)).replace(' ', '')}</b></div><div class="card"><span>예상 급여</span><b class="num">${won(totalPay)}</b></div></div>`;
+    h += `<div class="sec"><span>오늘 출근 현황</span><span>${md(k.date)} ${k.time}</span></div><div class="rows">`;
+    h += ss.map(x => {
+      const st = x.working ? '<span class="chip" style="background:#e5f6ef;color:#2c8a6e">🟢 근무 중</span>' : x.last ? '<span class="chip" style="background:#f7efe4;color:#8f7a69">퇴근</span>' : '<span class="chip" style="background:#ffe9e1;color:#c85a43">미출근</span>';
+      const tm = x.today.map(r => `${r.in}~${r.out || '근무 중'}`).join(', ') || '기록 없음';
+      return `<div class="att${x.st.id === lastNewId ? ' new' : ''}"><div class="who"><b>${esc(x.st.name)}</b><span class="d">${esc(x.st.role)}</span>${st}</div><div class="tm d num">${esc(tm)}</div>
+        <button class="clk ${x.working ? 'out' : ''}" data-sid="${x.st.id}">${x.working ? '퇴근 체크' : '출근 체크'}</button></div>`;
+    }).join('');
+    h += `</div>`;
+    h += `<div class="sec" style="margin-top:16px"><span>이번 달 직원별 예상 급여</span><span>근무시간 × 시급</span></div><div class="rows">`;
+    h += ss.map(x => `<div class="pay"><div class="l"><b>${esc(x.st.name)}</b><span class="d num">${x.days}일 · ${hm(x.mins)} × ${won(x.st.wage)}</span></div><b class="num">${won(x.pay)}</b></div>`).join('');
+    h += `<div class="row total"><div class="l"><span>합계</span></div><b class="num">${won(totalPay)}</b></div></div>`;
+    h += `<p class="hintp">이 화면은 맛보기 계산이에요. 주휴수당·4대보험·세금은 빠져 있어요. 실제 출퇴근 기록과 급여명세서는 <b>'솔로운영 근태관리'</b>와 연동될 예정이에요.</p>`;
   }
   pBody.innerHTML = h; lastNewId = null;
 }
@@ -1070,7 +1460,8 @@ function interact(k) {
   if (activeKey === k) return;
   const prev = activeKey; activeKey = k; formOpen = false; fixedEdit = false; ledgerMore = false; ledgerAll = false;
   if (prev === 'fridge') fridgeOpen(false); if (prev === 'safe') drawerOpen(false);
-  panel.classList.toggle('wide', k === 'ledger'); document.body.classList.toggle('panel-wide', k === 'ledger');
+  const wide = k === 'ledger' && MODE !== 'home'; panel.classList.toggle('wide', wide); document.body.classList.toggle('panel-wide', wide);
+  if (k === 'staff') stWaveT = performance.now();
   renderPanel(); pBody.scrollTop = 0;
   panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); document.body.classList.add('panel-open');
   if (k === 'fridge') fridgeOpen(true); if (k === 'safe') drawerOpen(true); if (k === 'pos') screenGlow = 0.6;
@@ -1094,7 +1485,29 @@ pBody.addEventListener('input', e => {
 pBody.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const b = pBody.querySelector('.save'); b && b.click(); } e.stopPropagation(); });
 pBody.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b || !pBody.contains(b)) return; const act = b.dataset.act;
-  if (act === 'open-form') { formOpen = true; renderPanel(); const f = pBody.querySelector(activeKey === 'fridge' ? '#fName' : '#fAmt'); f && f.focus({ preventScroll: true }); pBody.scrollTop = pBody.scrollHeight; return; }
+  if (act === 'open-form' || act === 'open-spend') { formOpen = act === 'open-spend' ? 'spend' : true; renderPanel(); const f = pBody.querySelector('.form input'); f && f.focus({ preventScroll: true }); pBody.scrollTop = pBody.scrollHeight; return; }
+  if (b.dataset.sid) { // 출근/퇴근 체크
+    const k = kst(), sid = b.dataset.sid, today = (DATA.att || []).filter(a => a.sid === sid && a.date === k.date), last = today[today.length - 1];
+    if (last && !last.out) last.out = k.time; else (DATA.att = DATA.att || []).push({ id: uid(), sid, date: k.date, in: k.time, out: null });
+    saveData(DATA); lastNewId = sid; renderPanel(); return;
+  }
+  if (b.dataset.fid) { const f = (DATA.family || []).find(x => x.id === b.dataset.fid); if (f) { f.done = !f.done; saveData(DATA); drawBoard(); renderPanel(); } return; }
+  if (b.dataset.when) { const i = pBody.querySelector('#fWhen'); i.value = b.dataset.when; return; }
+  if (act === 'save-fam') {
+    const n = pBody.querySelector('#fName'), w = pBody.querySelector('#fWhen'), text = (n.value || '').trim().slice(0, 20);
+    if (!text) { n.classList.add('err'); n.focus(); return; }
+    const rec = { id: uid(), text, when: (w.value || '').trim().slice(0, 16) || '언제든', done: false };
+    (DATA.family = DATA.family || []).unshift(rec); saveData(DATA); lastNewId = rec.id; formOpen = false; drawBoard(); renderPanel(); return;
+  }
+  if (act === 'save-spend') {
+    const n = pBody.querySelector('#fName'), i = pBody.querySelector('#fAmt');
+    const name = (n.value || '').trim().slice(0, 20), amount = Number(digits(i.value));
+    if (!name) { n.classList.add('err'); n.focus(); return; }
+    if (!amount || amount > 100000000) { i.classList.add('err'); i.focus(); return; }
+    const rec = { id: uid(), date: kst().date, name, amount };
+    (DATA.personal = DATA.personal || []).push(rec); saveData(DATA); lastNewId = rec.id; formOpen = false;
+    renderPanel(); renderHud(true); refreshPos(); floatText('−' + won(amount), V3(0.2, COUNTER_TOP + 0.45, -0.3), true); return;
+  }
   if (act === 'cancel') { formOpen = false; renderPanel(); return; }
   if (b.dataset.mode) { ledgerAll = b.dataset.mode === 'all'; renderPanel(); return; }
   if (act === 'more') { ledgerMore = true; renderPanel(); return; }
@@ -1105,7 +1518,7 @@ pBody.addEventListener('click', e => {
     const vals = ins.map(i => { const v = Number(digits(i.value) || 0); if (v > 100000000) bad = i; return v; });
     if (bad) { bad.classList.add('err'); bad.focus(); return; }
     vals.forEach((v, i) => { DATA.fixed[+ins[i].dataset.fx].amount = v; });
-    saveData(DATA); fixedEdit = false; renderPanel(); renderHud(true); return;
+    saveData(DATA); fixedEdit = false; renderPanel(); renderHud(true); refreshPos(); return;
   }
   if (act === 'save-personal') {
     const n = pBody.querySelector('#fName'), i = pBody.querySelector('#fAmt');
@@ -1140,14 +1553,14 @@ pBody.addEventListener('click', e => {
     if (cnt <= MAX_ITEMS) { const g = makeItem(cnt - 1, name, true); g.getWorldPosition(w); w.y += 0.3; }
     else { fridgeItems.forEach((g, j) => { g.userData.popT = performance.now() + j * 40; }); w.set(1.5, 1.5, -0.9); }
     floatText('−' + won(amount), w, true);
-    renderPanel(); renderHud(true);
+    renderPanel(); renderHud(true); refreshPos();
     try { navigator.vibrate && navigator.vibrate(14); } catch (er) {}
     return;
   }
   if (act === 'reset') {
     const now = performance.now();
     if (now - sampleArm > 3000) { sampleArm = now; b.textContent = '한 번 더 누르면 샘플로 되돌려요'; b.classList.add('warn'); return; }
-    sampleArm = 0; DATA = makeSample(); saveData(DATA); syncFridgeItems(); refreshPos(); renderHud(true); renderPanel();
+    sampleArm = 0; DATA = makeSample(); saveData(DATA); syncFridgeItems(); refreshPos(); drawBoard(); renderHud(true); renderPanel();
   }
 });
 
@@ -1183,10 +1596,10 @@ function stepAnims(now) {
 /* ---- 사장님 말 걸기 ---- */
 const bubble = document.getElementById('bubble'), face = document.getElementById('face'); let bubbleTimer = 0;
 function ownerTalk() {
-  const mo = month();
-  const quip = mo.net > 0 ? '이번 달은 흑자예요! 😄' : mo.net < 0 ? '아직 적자… 조금만 더 힘내요! 💪' : '딱 본전이에요! 🙂';
-  const todayLine = mo.today > 0 ? `오늘 매출 <b>${won(mo.today)}</b> 🎉` : '오늘은 아직 매출이 없어요. 포스기에서 첫 매출 넣어볼까요?';
-  bubble.innerHTML = `${todayLine}<br>이번 달 순익 <b>${won(mo.net)}</b><br>${quip}`;
+  const mo = month(), c = MC(), home = MODE === 'home';
+  const quip = home ? (mo.net > 0 ? '이번 달도 알뜰살뜰! 😄' : '이번 달은 지출 조심! 💪') : mo.net > 0 ? '이번 달은 흑자예요! 😄' : mo.net < 0 ? '아직 적자… 조금만 더 힘내요! 💪' : '딱 본전이에요! 🙂';
+  const todayLine = home ? `이번 달 수입 <b>${won(mo.s)}</b> · 지출 <b>${won(mo.exp)}</b>` : mo.today > 0 ? `오늘 ${c.inc} <b>${won(mo.today)}</b> 🎉` : `오늘은 아직 ${c.inc}이 없어요. ${c.obj.pos[1]}에서 첫 ${c.inc} 넣어볼까요?`;
+  bubble.innerHTML = `${todayLine}<br>이번 달 ${c.netW} <b>${won(mo.net)}</b><br>${quip}`;
   bubble.classList.add('show'); clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => bubble.classList.remove('show'), 4500);
   face.classList.remove('wiggle'); void face.offsetWidth; face.classList.add('wiggle');
   waveT = performance.now();
@@ -1204,6 +1617,43 @@ Object.entries(OBJ).forEach(([k, o]) => {
   el.addEventListener('click', e => { e.stopPropagation(); firstUse(); if (el.classList.contains('edge')) { if (o.focus) setView(k); else lookAt(o.anchor); } else interact(k); });
   tagsEl.appendChild(el); o.el = el; o.arrow = el.querySelector('.ee');
 });
+function relabel() {
+  Object.entries(OBJ).forEach(([k, o]) => {
+    const d = MC().obj[k]; if (!d) return; [o.emoji, o.name, o.chip, o.short] = d;
+    if (o.el) { o.el.innerHTML = `<span class="b">${o.emoji}</span><span class="e"><span class="ee"></span>${o.emoji} ${o.short || o.name}</span>`; o.el.setAttribute('aria-label', o.name + ' 보기'); o.arrow = o.el.querySelector('.ee'); }
+  });
+  aimKey = undefined;
+}
+function applyModeUI() {
+  const c = MC();
+  c.hud.forEach((t, i) => { document.getElementById('hL' + i).textContent = t; });
+  const qb = document.querySelectorAll('[data-view]'); qb[0].textContent = c.views[0]; qb[1].textContent = c.views[1];
+  face.textContent = c.face; face.setAttribute('aria-label', c.boss + '에게 말 걸기');
+  document.querySelectorAll('.modes [data-m]').forEach(b => { const on = b.dataset.m === MODE; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  document.body.dataset.mode = MODE;
+}
+let switching = false;
+const curtain = document.getElementById('curtain');
+function switchMode(m) {
+  if (m === MODE || switching || !MODES[m]) return;
+  switching = true; firstUse();
+  if (activeKey) closePanel();
+  bubble.classList.remove('show'); catBubble.classList.remove('show');
+  document.getElementById('cvIcon').textContent = MODES[m].icon; document.getElementById('cvText').textContent = MODES[m].label + ' 방으로 이동 중…';
+  curtain.classList.add('show');
+  setTimeout(() => {
+    MODE = m; try { localStorage.setItem(MODE_KEY, m); } catch (e) {}
+    DATA = loadData(m); saleChannel = MC().channels[0]; ledgerAll = false;
+    parts.forEach(p => scene.remove(p.m)); parts.length = 0;
+    applyMode3D(); relabel(); applyModeUI(); syncFridgeItems(); refreshPos();
+    const st = seatPose(); camTween = null; vel.yaw = vel.pitch = 0; view = 'seat';
+    cam.pos.copy(st.pos).add(V3(0, 0.1, 0.3)); cam.yaw = st.yaw + 0.22; cam.pitch = st.pitch + 0.05; applyCam();
+    moveTo(st, 0.6);
+    hudVal.s = hudVal.e = hudVal.n = 0; paintHud(); renderHud(true);
+    requestAnimationFrame(() => { curtain.classList.remove('show'); setTimeout(() => { switching = false; }, 300); });
+  }, RM ? 40 : 290);
+}
+document.querySelectorAll('.modes [data-m]').forEach(b => b.addEventListener('click', () => switchMode(b.dataset.m)));
 function lookAt(p) { const yp = lookYP(cam.pos, p); moveTo({ pos: cam.pos.clone(), yaw: yp.yaw, pitch: THREE.MathUtils.clamp(yp.pitch, -PITCH_LIM, PITCH_LIM) }, 0.6); }
 const tmpV = new THREE.Vector3(), tmpF = new THREE.Vector3();
 function updateOverlays(now) {
@@ -1323,7 +1773,7 @@ const seat0 = seatPose();
 cam.pos.copy(seat0.pos); cam.yaw = seat0.yaw; cam.pitch = seat0.pitch;
 if (!RM) { cam.pos.add(V3(0, 0.25, 0.5)); cam.yaw = 0.5; cam.pitch = 0.05; } // 들어오며 자리에 앉는 연출
 applyCam();
-syncFridgeItems(); refreshPos(); renderHud(RM);
+applyMode3D(); relabel(); applyModeUI(); syncFridgeItems(); refreshPos(); renderHud(RM);
 const HL = new THREE.Color(0xffb08a);
 const clock0 = { last: performance.now(), t: 0 }, perf = { n: 0, sum: 0, last: performance.now() };
 let started = false;
@@ -1362,6 +1812,13 @@ function frame(now) {
     const t = (now - waveT) / 1600;
     if (t >= 1) { waveT = -1; dArmR.rotation.z = 0.2; doll.position.y = 0; }
     else { const up = t < 0.15 ? easeOut(t / 0.15) : t > 0.85 ? 1 - easeIO((t - 0.85) / 0.15) : 1; dArmR.rotation.z = 0.2 + up * (2.3 + Math.sin(t * 30) * 0.4); doll.position.y = Math.abs(Math.sin(t * Math.PI * 3)) * 0.03 * (1 - t); }
+  }
+  // 직원: 살짝 흔들 + 가끔 손 흔들기
+  if (!RM) { stBody.rotation.z = Math.sin(T * 1.3) * 0.035; stHead.rotation.y = Math.sin(T * 0.8) * 0.15; stNextWave -= dt; if (stNextWave < 0 && stWaveT < 0) { stWaveT = now; stNextWave = 6 + Math.random() * 4; } }
+  if (stWaveT > 0) {
+    const t = (now - stWaveT) / 1400;
+    if (t >= 1) { stWaveT = -1; stArmR.rotation.z = 0.12; }
+    else { const up = t < 0.15 ? easeOut(t / 0.15) : t > 0.85 ? 1 - easeIO((t - 0.85) / 0.15) : 1; stArmR.rotation.z = 0.12 + up * (2.4 + Math.sin(t * 28) * 0.35); }
   }
   // 시계
   const k0 = kst(); hourH.rotation.z = -((+k0.time.slice(0, 2) % 12) + (+k0.time.slice(3)) / 60) / 12 * Math.PI * 2; minH.rotation.z = -(+k0.time.slice(3)) / 60 * Math.PI * 2;
